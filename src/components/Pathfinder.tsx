@@ -10,7 +10,6 @@ import {
   Activity, 
   GitBranch,
   PlayCircle,
-  PauseCircle,
   Lightbulb,
   Target,
   TrendingUp,
@@ -80,7 +79,7 @@ const novelIssues: NovelIssue[] = [
 const Pathfinder: React.FC = () => {
   const [isActive, setIsActive] = useState(false);
   const [currentPhase, setCurrentPhase] = useState<'idle' | 'detecting' | 'probing' | 'solving' | 'testing' | 'complete'>('idle');
-  const [progress, setProgress] = useState(0);
+  const [_progress, setProgress] = useState(0);
   const [currentIssue, setCurrentIssue] = useState<NovelIssue>(novelIssues[0]);
   const [historyMatch, setHistoryMatch] = useState(false);
   const [causalNodes, setCausalNodes] = useState<CausalNode[]>([]);
@@ -225,8 +224,11 @@ const Pathfinder: React.FC = () => {
       addThought('✅ Acknowledgment generated and queued for delivery', 'result');
       addThought('EDI message status: ERROR → ACKNOWLEDGED', 'result');
       addThought('🎉 FIX SUCCESSFUL! Acknowledgment sent to shipping line', 'result');
-      setMicroFixes(prev => prev.map(f => f.id === 'fix1' ? { ...f, status: 'success' } : f));
-      setSuccessfulFix(fixes[0]);
+      setMicroFixes(prev => {
+        const updated = prev.map(f => f.id === 'fix1' ? { ...f, status: 'success' as const } : f);
+        setSuccessfulFix(updated[0]);
+        return updated;
+      });
       setProgress(85);
     }, 22000);
 
@@ -276,15 +278,13 @@ const Pathfinder: React.FC = () => {
     }
   };
 
-  const PhaseIcon = getPhaseIcon(currentPhase);
-
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="relative">
-            <Navigation className="w-8 h-8 text-emerald-400" />
+            <Navigation className="w-8 h-8 text-white" />
             {isActive && (
               <div className="absolute -top-1 -right-1">
                 <Sparkles className="w-4 h-4 text-yellow-400 animate-pulse" />
@@ -292,11 +292,11 @@ const Pathfinder: React.FC = () => {
             )}
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-slate-200">Pathfinder++</h2>
-            <p className="text-sm text-slate-400">AI Problem Solver for Novel Issues</p>
+            <h2 className="text-2xl font-bold text-white">Pathfinder++</h2>
+            <p className="text-sm text-white/60">AI Problem Solver for Novel Issues</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-emerald-950/40 border border-emerald-800/40 rounded-lg">
+        <div className="flex items-center gap-2 px-4 py-2 bg-emerald-500/20 border border-emerald-500/40 rounded-lg">
           <Zap className="w-4 h-4 text-emerald-400" />
           <span className="text-sm font-medium text-emerald-400">
             {isActive ? 'SOLVING...' : currentPhase === 'complete' ? 'SOLVED' : 'READY'}
@@ -305,27 +305,27 @@ const Pathfinder: React.FC = () => {
       </div>
 
       {/* Current Issue */}
-      <div className="bg-slate-900/50 border border-cyan-900/30 rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-slate-200 mb-4">Novel Problem Detected</h3>
-        <div className="bg-gradient-to-br from-red-950/40 to-orange-950/30 border-2 border-orange-600/60 rounded-lg p-4 shadow-lg shadow-orange-900/30">
+      <div className="bg-[#6b5d4f]/20 backdrop-blur-sm border border-white/10 rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">Novel Problem Detected</h3>
+        <div className="bg-black/40 backdrop-blur-sm border-2 border-orange-500/40 rounded-lg p-4 shadow-lg">
           <div className="flex items-center gap-2 mb-2">
             <AlertCircle className="w-5 h-5 text-orange-400" />
             <span className="text-xs font-mono text-orange-400">
               {currentIssue.tag}
             </span>
             {!historyMatch && currentPhase !== 'idle' && (
-              <span className="ml-auto flex items-center gap-1 text-xs px-2 py-1 bg-red-900/40 border border-red-700/40 rounded text-red-300">
+              <span className="ml-auto flex items-center gap-1 text-xs px-2 py-1 bg-red-500/20 border border-red-500/40 rounded text-red-400">
                 <XCircle className="w-3 h-3" />
                 No Historical Match
               </span>
             )}
           </div>
-          <p className="text-sm font-semibold text-slate-200 mb-3">{currentIssue.name}</p>
+          <p className="text-sm font-semibold text-white mb-3">{currentIssue.name}</p>
           
           <div className="space-y-1">
-            <p className="text-xs text-slate-400 font-semibold mb-1">Symptoms:</p>
+            <p className="text-xs text-white/60 font-semibold mb-1">Symptoms:</p>
             {currentIssue.symptoms.map((symptom, idx) => (
-              <div key={idx} className="flex items-start gap-2 text-xs text-slate-300">
+              <div key={idx} className="flex items-start gap-2 text-xs text-white/80">
                 <span className="text-orange-400 mt-0.5">•</span>
                 <span>{symptom}</span>
               </div>
@@ -336,28 +336,15 @@ const Pathfinder: React.FC = () => {
 
       {/* Phase Progress */}
       {currentPhase !== 'idle' && (
-        <div className="bg-slate-900/50 border border-cyan-900/30 rounded-xl p-6 space-y-4">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-lg font-semibold text-slate-200">AI Agent Progress</h3>
-            <span className="text-2xl font-bold text-emerald-400">{progress}%</span>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="relative h-3 bg-slate-800/50 rounded-full overflow-hidden">
-            <div
-              className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-600 to-cyan-600 transition-all duration-500 rounded-full"
-              style={{ width: `${progress}%` }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
-            </div>
-          </div>
+        <div className="bg-[#6b5d4f]/20 backdrop-blur-sm border border-white/10 rounded-xl p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-white mb-2">Progress</h3>
 
           {/* Phase Indicators */}
           <div className="flex items-center justify-between mt-6">
-            {(['detecting', 'probing', 'solving', 'testing', 'complete'] as const).map((phase, idx) => {
+            {(['detecting', 'probing', 'solving', 'testing', 'complete'] as const).map((phase, _idx) => {
               const Icon = getPhaseIcon(phase);
               const isActive = currentPhase === phase;
-              const isPast = ['detecting', 'probing', 'solving', 'testing', 'complete'].indexOf(currentPhase) > idx;
+              const isPast = ['detecting', 'probing', 'solving', 'testing', 'complete'].indexOf(currentPhase) > _idx;
               
               return (
                 <React.Fragment key={phase}>
@@ -369,21 +356,21 @@ const Pathfinder: React.FC = () => {
                         ? 'bg-emerald-600 shadow-lg shadow-emerald-600/50 animate-pulse' 
                         : isPast 
                         ? 'bg-emerald-700/50' 
-                        : 'bg-slate-800/50'
+                        : 'bg-white/10'
                     }`}>
                       <Icon className={`w-5 h-5 ${
-                        isActive || isPast ? 'text-white' : 'text-slate-500'
+                        isActive || isPast ? 'text-white' : 'text-white/40'
                       }`} />
                     </div>
                     <span className={`text-xs font-medium capitalize ${
-                      isActive ? 'text-emerald-400' : isPast ? 'text-emerald-600' : 'text-slate-500'
+                      isActive ? 'text-emerald-400' : isPast ? 'text-emerald-600' : 'text-white/40'
                     }`}>
                       {phase}
                     </span>
                   </div>
-                  {idx < 4 && (
+                  {_idx < 4 && (
                     <div className={`flex-1 h-1 rounded transition-all duration-300 ${
-                      isPast ? 'bg-emerald-700/50' : 'bg-slate-800/50'
+                      isPast ? 'bg-emerald-700/50' : 'bg-white/10'
                     }`} />
                   )}
                 </React.Fragment>
@@ -395,14 +382,14 @@ const Pathfinder: React.FC = () => {
           <div className="mt-6">
             <div className="flex items-center gap-2 mb-3">
               <Brain className="w-5 h-5 text-emerald-400 animate-pulse" />
-              <h4 className="text-sm font-semibold text-slate-200">AI Agent Thinking Process</h4>
+              <h4 className="text-sm font-semibold text-white">AI Agent Thinking Process</h4>
             </div>
             <div 
               ref={thoughtsRef}
-              className="bg-slate-950/50 border border-slate-700/30 rounded-lg p-4 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700/50"
+              className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-lg p-4 max-h-64 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20"
             >
               <div className="space-y-2 font-mono text-xs">
-                {agentThoughts.map((thought, idx) => {
+                {agentThoughts.map((thought) => {
                   const icons = {
                     analysis: <Cpu className="w-3 h-3 text-cyan-400" />,
                     hypothesis: <Lightbulb className="w-3 h-3 text-yellow-400" />,
@@ -413,7 +400,7 @@ const Pathfinder: React.FC = () => {
                   return (
                     <div 
                       key={thought.id}
-                      className="flex items-start gap-2 text-slate-300 animate-fadeIn"
+                      className="flex items-start gap-2 text-white/60 animate-fadeIn"
                     >
                       {icons[thought.type]}
                       <span className="text-emerald-400">›</span>
@@ -429,18 +416,18 @@ const Pathfinder: React.FC = () => {
 
       {/* Causal Graph */}
       {causalNodes.length > 0 && (
-        <div className="bg-slate-900/50 border border-cyan-900/30 rounded-xl p-6">
+        <div className="bg-[#6b5d4f]/20 backdrop-blur-sm border border-white/10 rounded-xl p-6">
           <div className="flex items-center gap-2 mb-4">
             <GitBranch className="w-5 h-5 text-cyan-400" />
-            <h3 className="text-lg font-semibold text-slate-200">Causal Dependency Graph</h3>
+            <h3 className="text-lg font-semibold text-white">Causal Dependency Graph</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
             {causalNodes.map((node) => {
               const statusConfig = {
-                checking: { bg: 'bg-slate-800/40', border: 'border-slate-600/40', text: 'text-slate-400', icon: Activity },
-                clear: { bg: 'bg-emerald-950/30', border: 'border-emerald-800/40', text: 'text-emerald-400', icon: CheckCircle },
-                suspicious: { bg: 'bg-yellow-950/30', border: 'border-yellow-800/40', text: 'text-yellow-400', icon: AlertCircle },
-                root_cause: { bg: 'bg-red-950/40', border: 'border-red-600/60', text: 'text-red-400', icon: Target }
+                checking: { bg: 'bg-black/40 backdrop-blur-sm', border: 'border-white/20', text: 'text-white/60', icon: Activity },
+                clear: { bg: 'bg-emerald-500/20', border: 'border-emerald-500/40', text: 'text-emerald-400', icon: CheckCircle },
+                suspicious: { bg: 'bg-yellow-500/20', border: 'border-yellow-500/40', text: 'text-yellow-400', icon: AlertCircle },
+                root_cause: { bg: 'bg-red-500/20', border: 'border-red-500/60', text: 'text-red-400', icon: Target }
               };
               
               const config = statusConfig[node.status];
@@ -457,7 +444,7 @@ const Pathfinder: React.FC = () => {
                     <StatusIcon className={`w-4 h-4 ${config.text} ${node.status === 'checking' ? 'animate-spin' : ''}`} />
                     <span className={`text-xs font-semibold ${config.text}`}>{node.name}</span>
                   </div>
-                  <p className="text-xs text-slate-400">{node.details}</p>
+                  <p className="text-xs text-white/60">{node.details}</p>
                 </div>
               );
             })}
@@ -467,10 +454,10 @@ const Pathfinder: React.FC = () => {
 
       {/* Micro-Fixes */}
       {microFixes.length > 0 && (
-        <div className="bg-slate-900/50 border border-cyan-900/30 rounded-xl p-6">
+        <div className="bg-[#6b5d4f]/20 backdrop-blur-sm border border-white/10 rounded-xl p-6">
           <div className="flex items-center gap-2 mb-4">
             <Lightbulb className="w-5 h-5 text-yellow-400" />
-            <h3 className="text-lg font-semibold text-slate-200">Micro-Fix Strategies</h3>
+            <h3 className="text-lg font-semibold text-white">Micro-Fix Strategies</h3>
           </div>
           <div className="space-y-3">
             {microFixes.map((fix) => {
@@ -482,16 +469,16 @@ const Pathfinder: React.FC = () => {
               };
               
               const riskColors = {
-                low: 'text-emerald-400 bg-emerald-950/30 border-emerald-800/40',
-                medium: 'text-yellow-400 bg-yellow-950/30 border-yellow-800/40',
-                high: 'text-red-400 bg-red-950/30 border-red-800/40'
+                low: 'text-emerald-400 bg-emerald-500/20 border-emerald-500/40',
+                medium: 'text-yellow-400 bg-yellow-500/20 border-yellow-500/40',
+                high: 'text-red-400 bg-red-500/20 border-red-500/40'
               };
               
               const statusConfig = {
-                pending: { bg: 'bg-slate-800/30', border: 'border-slate-700/40', text: 'text-slate-400' },
-                testing: { bg: 'bg-cyan-950/40', border: 'border-cyan-600/60', text: 'text-cyan-400' },
-                success: { bg: 'bg-emerald-950/40', border: 'border-emerald-600/60', text: 'text-emerald-400' },
-                failed: { bg: 'bg-red-950/40', border: 'border-red-600/60', text: 'text-red-400' }
+                pending: { bg: 'bg-black/40 backdrop-blur-sm', border: 'border-white/10', text: 'text-white/60' },
+                testing: { bg: 'bg-cyan-500/20', border: 'border-cyan-500/60', text: 'text-cyan-400' },
+                success: { bg: 'bg-emerald-500/20', border: 'border-emerald-500/60', text: 'text-emerald-400' },
+                failed: { bg: 'bg-red-500/20', border: 'border-red-500/60', text: 'text-red-400' }
               };
               
               const TypeIcon = typeIcons[fix.type];
@@ -532,50 +519,50 @@ const Pathfinder: React.FC = () => {
 
       {/* Playbook Created */}
       {playbookCreated && currentPhase === 'complete' && (
-        <div className="bg-gradient-to-br from-emerald-950/40 to-cyan-950/30 border-2 border-emerald-600/60 rounded-xl p-6 shadow-lg shadow-emerald-900/30">
+        <div className="bg-black/40 backdrop-blur-sm border-2 border-emerald-500/60 rounded-xl p-6 shadow-lg">
           <div className="flex items-start gap-4">
             <div className="flex-shrink-0">
-              <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-xl flex items-center justify-center">
-                <BookOpen className="w-6 h-6 text-white" />
+              <div className="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-emerald-400" />
               </div>
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
-                <h4 className="text-xl font-bold text-slate-200">New Playbook Created!</h4>
+                <h4 className="text-xl font-bold text-white">New Playbook Created!</h4>
                 <Sparkles className="w-5 h-5 text-yellow-400" />
               </div>
-              <p className="text-slate-300 mb-4">
+              <p className="text-white/80 mb-4">
                 Successfully solved a novel problem and documented the solution. This playbook is now available for future similar issues.
               </p>
               
-              <div className="bg-slate-950/50 border border-slate-700/40 rounded-lg p-4 space-y-3">
+              <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-lg p-4 space-y-3">
                 <div>
-                  <span className="text-xs text-slate-400">Playbook Name:</span>
+                  <span className="text-xs text-white/60">Playbook Name:</span>
                   <p className="text-sm font-semibold text-emerald-400 mt-1">EDI Orphaned Transaction Recovery</p>
                 </div>
                 
                 <div>
-                  <span className="text-xs text-slate-400">Root Cause:</span>
-                  <p className="text-sm text-slate-200 mt-1">Orphaned database transaction lock preventing acknowledgment service from processing message REF-IFT-0007</p>
+                  <span className="text-xs text-white/60">Root Cause:</span>
+                  <p className="text-sm text-white/80 mt-1">Orphaned database transaction lock preventing acknowledgment service from processing message REF-IFT-0007</p>
                 </div>
                 
                 <div>
-                  <span className="text-xs text-slate-400">Solution:</span>
-                  <p className="text-sm text-slate-200 mt-1">{successfulFix?.action}</p>
+                  <span className="text-xs text-white/60">Solution:</span>
+                  <p className="text-sm text-white/80 mt-1">{successfulFix?.action}</p>
                 </div>
                 
-                <div className="flex items-center gap-4 pt-2 border-t border-slate-700/40">
+                <div className="flex items-center gap-4 pt-2 border-t border-white/10">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-emerald-400" />
-                    <span className="text-xs text-slate-400">Success Rate: 100%</span>
+                    <span className="text-xs text-white/60">Success Rate: 100%</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-cyan-400" />
-                    <span className="text-xs text-slate-400">Resolution Time: 26s</span>
+                    <span className="text-xs text-white/60">Resolution Time: 26s</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Target className="w-4 h-4 text-yellow-400" />
-                    <span className="text-xs text-slate-400">Risk: Low</span>
+                    <span className="text-xs text-white/60">Risk: Low</span>
                   </div>
                 </div>
               </div>

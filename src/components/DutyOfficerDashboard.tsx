@@ -9,7 +9,6 @@ import {
   RotateCcw,
   Users,
   Zap,
-  Shield,
   FileText,
   Activity,
   TrendingUp,
@@ -207,79 +206,64 @@ const DutyOfficerDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-cyan-950/20 via-transparent to-transparent pointer-events-none" />
-      <div className="absolute inset-0 bg-grid-pattern opacity-5 pointer-events-none" />
-
+    <div className="p-6 space-y-6">
       {/* Header */}
-      <header className="relative border-b border-cyan-900/30 bg-slate-950/50 backdrop-blur-xl">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <Users className="w-10 h-10 text-cyan-400" />
-                <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-cyan-400">
-                  <div className="absolute inset-0 rounded-full animate-ping bg-cyan-400" />
-                </div>
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-                  Duty Officer Command Center
-                </h1>
-                <p className="text-sm text-slate-400">Incident Response & Decision Management</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2 px-4 py-2 bg-cyan-950/30 border border-cyan-800/40 rounded-lg">
-                <Activity className="w-4 h-4 text-cyan-400 animate-pulse" />
-                <span className="text-sm font-medium text-cyan-400">3 ACTIVE INCIDENTS</span>
-              </div>
-              <div className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg">
-                <Shield className="w-4 h-4 text-emerald-400" />
-                <span className="text-sm text-slate-300">System Operational</span>
-              </div>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Users className="w-8 h-8 text-white" />
+            <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-white">
+              <div className="absolute inset-0 rounded-full animate-ping bg-white" />
             </div>
           </div>
+          <div>
+            <h2 className="text-2xl font-medium text-white tracking-tight">Duty Officer Command Center</h2>
+            <p className="text-sm text-white/60">Incident Response & Decision Management</p>
+          </div>
         </div>
-      </header>
 
-      <div className="container mx-auto px-6 py-6">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 rounded-lg">
+            <Activity className="w-4 h-4 text-white animate-pulse" />
+            <span className="text-sm font-medium text-white">3 ACTIVE INCIDENTS</span>
+          </div>
+        </div>
+      </div>
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-slate-900/50 backdrop-blur-sm border border-cyan-900/30 rounded-xl p-4">
+          <div className="bg-[#6b5d4f]/20 backdrop-blur-sm border border-white/10 rounded-xl p-4">
             <div className="flex items-center gap-3">
               <AlertTriangle className="w-8 h-8 text-red-400" />
               <div>
                 <div className="text-2xl font-bold text-red-400">1</div>
-                <div className="text-sm text-slate-400">Critical</div>
+                <div className="text-sm text-white/60">Critical</div>
               </div>
             </div>
           </div>
-          <div className="bg-slate-900/50 backdrop-blur-sm border border-cyan-900/30 rounded-xl p-4">
+          <div className="bg-[#6b5d4f]/20 backdrop-blur-sm border border-white/10 rounded-xl p-4">
             <div className="flex items-center gap-3">
               <TrendingUp className="w-8 h-8 text-orange-400" />
               <div>
                 <div className="text-2xl font-bold text-orange-400">1</div>
-                <div className="text-sm text-slate-400">High Priority</div>
+                <div className="text-sm text-white/60">High Priority</div>
               </div>
             </div>
           </div>
-          <div className="bg-slate-900/50 backdrop-blur-sm border border-cyan-900/30 rounded-xl p-4">
+          <div className="bg-[#6b5d4f]/20 backdrop-blur-sm border border-white/10 rounded-xl p-4">
             <div className="flex items-center gap-3">
               <Target className="w-8 h-8 text-amber-400" />
               <div>
                 <div className="text-2xl font-bold text-amber-400">1</div>
-                <div className="text-sm text-slate-400">Medium</div>
+                <div className="text-sm text-white/60">Medium</div>
               </div>
             </div>
           </div>
-          <div className="bg-slate-900/50 backdrop-blur-sm border border-cyan-900/30 rounded-xl p-4">
+          <div className="bg-[#6b5d4f]/20 backdrop-blur-sm border border-white/10 rounded-xl p-4">
             <div className="flex items-center gap-3">
               <Clock className="w-8 h-8 text-blue-400" />
               <div>
                 <div className="text-2xl font-bold text-blue-400">3</div>
-                <div className="text-sm text-slate-400">Pending Review</div>
+                <div className="text-sm text-white/60">Pending Review</div>
               </div>
             </div>
           </div>
@@ -290,40 +274,40 @@ const DutyOfficerDashboard: React.FC = () => {
           {incidents.map((incident) => (
             <div
               key={incident.id}
-              className={`relative bg-slate-900/50 backdrop-blur-sm border rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 cursor-pointer flex flex-col h-full ${
+              className={`relative bg-[#6b5d4f]/20 backdrop-blur-sm border rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 cursor-pointer flex flex-col h-full ${
                 selectedIncident === incident.id 
-                  ? 'border-cyan-500 ring-2 ring-cyan-500/50' 
-                  : 'border-cyan-900/30'
+                  ? 'border-white ring-2 ring-white/50' 
+                  : 'border-white/10'
               }`}
               onClick={() => setSelectedIncident(selectedIncident === incident.id ? null : incident.id)}
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-cyan-950/10 to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent pointer-events-none" />
 
               {/* Header */}
-              <div className="relative px-6 py-4 border-b border-cyan-900/30 bg-slate-950/50 flex-shrink-0">
+              <div className="relative px-6 py-4 border-b border-white/10 bg-[#6b5d4f]/30 flex-shrink-0">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5 text-cyan-400" />
-                    <span className="text-lg font-bold text-cyan-400">{incident.id}</span>
+                    <AlertTriangle className="w-5 h-5 text-white" />
+                    <span className="text-lg font-bold text-white">{incident.id}</span>
                   </div>
                   <div className={`px-2 py-1 rounded text-xs font-medium border ${getSeverityColor(incident.severity)}`}>
                     {incident.severity.toUpperCase()}
                   </div>
                 </div>
-                <div className="text-sm text-slate-300 font-medium">{incident.type}</div>
-                <div className="text-xs text-slate-400 min-h-[1.25rem]">{incident.service}</div>
+                <div className="text-sm text-white/90 font-medium">{incident.type}</div>
+                <div className="text-xs text-white/60 min-h-[1.25rem]">{incident.service}</div>
               </div>
 
               {/* Content */}
               <div className="relative p-6 space-y-4 flex-1 flex flex-col">
                 {/* Problem Summary - Full Text */}
                 <div className="flex-shrink-0">
-                  <h4 className="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
+                  <h4 className="text-sm font-semibold text-white/90 mb-2 flex items-center gap-2">
                     <FileText className="w-4 h-4" />
                     Problem Summary
                   </h4>
-                  <div className="bg-slate-800/20 border border-slate-700/30 rounded-lg p-3 min-h-[4.5rem]">
-                    <p className="text-sm text-slate-300 leading-relaxed">
+                  <div className="bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-3 min-h-[4.5rem]">
+                    <p className="text-sm text-white/80 leading-relaxed">
                       {incident.problem}
                     </p>
                   </div>
@@ -331,35 +315,35 @@ const DutyOfficerDashboard: React.FC = () => {
 
                 {/* Proposed Solution */}
                 {incident.proposedSolution && (
-                  <div className="bg-slate-800/30 border border-slate-700/40 rounded-lg p-4 flex-shrink-0 min-h-[8rem]">
+                  <div className="bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-4 flex-shrink-0 min-h-[8rem]">
                     <h4 className="text-sm font-semibold text-emerald-400 mb-2 flex items-center gap-2">
                       <Zap className="w-4 h-4" />
                       AI Proposed Solution
                     </h4>
-                    <div className="text-sm text-slate-300 font-medium mb-2">
+                    <div className="text-sm text-white/90 font-medium mb-2">
                       {incident.proposedSolution.title}
                     </div>
-                    <div className="text-xs text-slate-400 mb-3">
+                    <div className="text-xs text-white/70 mb-3">
                       {incident.proposedSolution.description}
                     </div>
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Time:</span>
-                        <span className="text-slate-300">{incident.proposedSolution.estimatedTime}</span>
+                        <span className="text-white/50">Time:</span>
+                        <span className="text-white/80">{incident.proposedSolution.estimatedTime}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Risk:</span>
+                        <span className="text-white/50">Risk:</span>
                         <span className={getRiskColor(incident.proposedSolution.riskLevel)}>
                           {incident.proposedSolution.riskLevel.toUpperCase()}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Confidence:</span>
+                        <span className="text-white/50">Confidence:</span>
                         <span className="text-cyan-400">{incident.proposedSolution.confidence}%</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-slate-500">Blast Radius:</span>
-                        <span className="text-slate-300 text-right">
+                        <span className="text-white/50">Blast Radius:</span>
+                        <span className="text-white/80 text-right">
                           {incident.proposedSolution.blastRadius.split(', ').length} services
                         </span>
                       </div>
@@ -375,14 +359,14 @@ const DutyOfficerDashboard: React.FC = () => {
                         e.stopPropagation();
                         toggleCustomSolution(incident.id);
                       }}
-                      className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-slate-800/30 border border-slate-700/40 rounded-lg text-slate-400 hover:bg-slate-800/50 hover:text-slate-300 transition-colors text-sm"
+                      className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white/60 hover:bg-white/10 hover:text-white/80 transition-colors text-sm"
                     >
                       <MessageSquare className="w-4 h-4" />
                       {showCustomSolution[incident.id] ? 'Hide Custom Solution' : 'Provide Custom Solution'}
                     </button>
 
-                    {showCustomSolution[incident.id] && (
-                      <div className="bg-slate-800/20 border border-slate-700/30 rounded-lg p-4">
+                            {showCustomSolution[incident.id] && (
+                              <div className="bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-4">
                         <h4 className="text-sm font-semibold text-amber-400 mb-2 flex items-center gap-2">
                           <Users className="w-4 h-4" />
                           Duty Officer Solution
@@ -394,9 +378,9 @@ const DutyOfficerDashboard: React.FC = () => {
                             setCustomSolutions(prev => ({ ...prev, [incident.id]: e.target.value }));
                           }}
                           placeholder="Describe your alternative solution approach..."
-                          className="w-full h-20 bg-slate-900/50 border border-slate-600/40 rounded-lg p-3 text-slate-300 placeholder-slate-500 resize-none focus:outline-none focus:border-amber-500 text-sm"
+                          className="w-full h-20 bg-[#6b5d4f]/40 border border-white/20 rounded-lg p-3 text-white/80 placeholder-white/40 resize-none focus:outline-none focus:border-amber-500 text-sm"
                         />
-                        <div className="mt-2 text-xs text-slate-500">
+                        <div className="mt-2 text-xs text-white/50">
                           This will override the AI-proposed solution when you approve.
                         </div>
                       </div>
@@ -410,7 +394,7 @@ const DutyOfficerDashboard: React.FC = () => {
                     <div className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(incident.status)}`}>
                       {incident.status.toUpperCase()}
                     </div>
-                    <div className="text-xs text-slate-500">{incident.timestamp}</div>
+                    <div className="text-xs text-white/50">{incident.timestamp}</div>
                   </div>
 
                   {/* Action Buttons */}
@@ -446,8 +430,8 @@ const DutyOfficerDashboard: React.FC = () => {
 
         {/* Detailed View Modal */}
         {selectedIncident && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 border border-cyan-900/30 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-[#6b5d4f]/30 backdrop-blur-xl border border-white/20 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               {(() => {
                 const incident = incidents.find(i => i.id === selectedIncident);
                 if (!incident) return null;
@@ -455,20 +439,20 @@ const DutyOfficerDashboard: React.FC = () => {
                 return (
                   <>
                     {/* Modal Header */}
-                    <div className="sticky top-0 bg-slate-950/95 backdrop-blur-sm border-b border-cyan-900/30 px-6 py-4">
+                    <div className="sticky top-0 bg-[#0a0a0a]/95 backdrop-blur-sm border-b border-white/10 px-6 py-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          <AlertTriangle className="w-8 h-8 text-cyan-400" />
+                          <AlertTriangle className="w-8 h-8 text-white" />
                           <div>
-                            <h2 className="text-2xl font-bold text-cyan-400">{incident.id}</h2>
-                            <p className="text-slate-400">{incident.type} • {incident.service}</p>
+                            <h2 className="text-2xl font-bold text-white">{incident.id}</h2>
+                            <p className="text-white/60">{incident.type} • {incident.service}</p>
                           </div>
                         </div>
                         <button
                           onClick={() => setSelectedIncident(null)}
-                          className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+                          className="p-2 hover:bg-white/10 rounded-lg transition-colors"
                         >
-                          <XCircle className="w-6 h-6 text-slate-400" />
+                          <XCircle className="w-6 h-6 text-white/60" />
                         </button>
                       </div>
                     </div>
@@ -477,18 +461,18 @@ const DutyOfficerDashboard: React.FC = () => {
                     <div className="p-6 space-y-6">
                       {/* Problem Details */}
                       <div>
-                        <h3 className="text-lg font-semibold text-slate-200 mb-3">🚨 INCIDENT BRIEFING</h3>
-                        <div className="bg-slate-800/30 border border-slate-700/40 rounded-lg p-4">
-                          <p className="text-slate-300 leading-relaxed">{incident.problem}</p>
+                              <h3 className="text-lg font-semibold text-white mb-3">🚨 INCIDENT BRIEFING</h3>
+                                <div className="bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-4">
+                          <p className="text-white/80 leading-relaxed">{incident.problem}</p>
                         </div>
                       </div>
 
                       {/* Operational Impact */}
                       <div>
-                        <h4 className="text-md font-semibold text-slate-200 mb-3">Operational Impact:</h4>
+                        <h4 className="text-md font-semibold text-white mb-3">Operational Impact:</h4>
                         <ul className="space-y-2">
                           {incident.operationalImpact.map((impact, index) => (
-                            <li key={index} className="flex items-start gap-2 text-slate-300">
+                            <li key={index} className="flex items-start gap-2 text-white/80">
                               <span className="text-red-400 mt-1">•</span>
                               <span>{impact}</span>
                             </li>
@@ -498,10 +482,10 @@ const DutyOfficerDashboard: React.FC = () => {
 
                       {/* System Behavior */}
                       <div>
-                        <h4 className="text-md font-semibold text-slate-200 mb-3">System Behavior:</h4>
+                        <h4 className="text-md font-semibold text-white mb-3">System Behavior:</h4>
                         <ul className="space-y-2">
                           {incident.systemBehavior.map((behavior, index) => (
-                            <li key={index} className="flex items-start gap-2 text-slate-300">
+                            <li key={index} className="flex items-start gap-2 text-white/80">
                               <span className="text-blue-400 mt-1">•</span>
                               <span>{behavior}</span>
                             </li>
@@ -511,12 +495,12 @@ const DutyOfficerDashboard: React.FC = () => {
 
                       {/* Key Considerations */}
                       <div>
-                        <h4 className="text-md font-semibold text-slate-200 mb-3">Key Considerations for Duty Officer:</h4>
-                        <div className="space-y-3">
-                          {incident.keyConsiderations.map((consideration, index) => (
-                            <div key={index} className="flex items-start gap-3 p-3 bg-slate-800/30 border border-slate-700/40 rounded-lg">
+                        <h4 className="text-md font-semibold text-white mb-3">Key Considerations for Duty Officer:</h4>
+                                <div className="space-y-3">
+                                  {incident.keyConsiderations.map((consideration, index) => (
+                                    <div key={index} className="flex items-start gap-3 p-3 bg-[#6b5d4f]/30 border border-white/10 rounded-lg">
                               {getConsiderationIcon(consideration.type)}
-                              <span className="text-slate-300">{consideration.text}</span>
+                              <span className="text-white/80">{consideration.text}</span>
                             </div>
                           ))}
                         </div>
@@ -526,38 +510,38 @@ const DutyOfficerDashboard: React.FC = () => {
                       {incident.proposedSolution && (
                         <div>
                           <h4 className="text-md font-semibold text-emerald-400 mb-3">🎯 Proposed Solution</h4>
-                          <div className="bg-emerald-950/20 border border-emerald-800/40 rounded-lg p-4">
+                          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4">
                             <h5 className="text-lg font-semibold text-emerald-400 mb-2">
                               {incident.proposedSolution.title}
                             </h5>
-                            <p className="text-slate-300 mb-4">{incident.proposedSolution.description}</p>
+                            <p className="text-white/80 mb-4">{incident.proposedSolution.description}</p>
                             
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                               <div className="text-center">
                                 <div className="text-2xl font-bold text-cyan-400">{incident.proposedSolution.estimatedTime}</div>
-                                <div className="text-xs text-slate-500">Estimated Time</div>
+                                <div className="text-xs text-white/50">Estimated Time</div>
                               </div>
                               <div className="text-center">
                                 <div className={`text-2xl font-bold ${getRiskColor(incident.proposedSolution.riskLevel)}`}>
                                   {incident.proposedSolution.riskLevel.toUpperCase()}
                                 </div>
-                                <div className="text-xs text-slate-500">Risk Level</div>
+                                <div className="text-xs text-white/50">Risk Level</div>
                               </div>
                               <div className="text-center">
                                 <div className="text-2xl font-bold text-emerald-400">{incident.proposedSolution.confidence}%</div>
-                                <div className="text-xs text-slate-500">Confidence</div>
+                                <div className="text-xs text-white/50">Confidence</div>
                               </div>
                               <div className="text-center">
                                 <div className="text-2xl font-bold text-amber-400">
                                   {incident.proposedSolution.blastRadius.split(', ').length}
                                 </div>
-                                <div className="text-xs text-slate-500">Affected Services</div>
+                                <div className="text-xs text-white/50">Affected Services</div>
                               </div>
                             </div>
 
                             <div className="mb-4">
-                              <div className="text-sm text-slate-500 mb-1">Blast Radius:</div>
-                              <div className="text-sm text-slate-300">{incident.proposedSolution.blastRadius}</div>
+                              <div className="text-sm text-white/50 mb-1">Blast Radius:</div>
+                              <div className="text-sm text-white/80">{incident.proposedSolution.blastRadius}</div>
                             </div>
                           </div>
                         </div>
@@ -565,27 +549,27 @@ const DutyOfficerDashboard: React.FC = () => {
 
                       {/* Next Steps */}
                       <div>
-                        <h4 className="text-md font-semibold text-slate-200 mb-3">Next Step:</h4>
-                        <div className="bg-slate-800/30 border border-slate-700/40 rounded-lg p-4">
-                          <p className="text-slate-300">{incident.nextStep}</p>
+                        <h4 className="text-md font-semibold text-white mb-3">Next Step:</h4>
+                                <div className="bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-4">
+                          <p className="text-white/80">{incident.nextStep}</p>
                         </div>
                       </div>
 
                       {/* Custom Solution Input */}
                       {incident.status === 'pending' && (
                         <div>
-                          <h4 className="text-md font-semibold text-amber-400 mb-3 flex items-center gap-2">
-                            <Users className="w-5 h-5" />
-                            Custom Solution (Optional)
-                          </h4>
-                          <div className="bg-slate-800/20 border border-slate-700/30 rounded-lg p-4">
+                            <h4 className="text-md font-semibold text-amber-400 mb-3 flex items-center gap-2">
+                              <Users className="w-5 h-5" />
+                              Custom Solution (Optional)
+                            </h4>
+                                  <div className="bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-4">
                             <textarea
                               value={customSolutions[incident.id] || ''}
                               onChange={(e) => setCustomSolutions(prev => ({ ...prev, [incident.id]: e.target.value }))}
                               placeholder="If the AI-proposed solution is incorrect, describe your alternative approach here..."
-                              className="w-full h-32 bg-slate-900/50 border border-slate-600/40 rounded-lg p-3 text-slate-300 placeholder-slate-500 resize-none focus:outline-none focus:border-amber-500"
+                              className="w-full h-32 bg-[#6b5d4f]/40 border border-white/20 rounded-lg p-3 text-white/80 placeholder-white/40 resize-none focus:outline-none focus:border-amber-500"
                             />
-                            <div className="mt-2 text-sm text-slate-500">
+                            <div className="mt-2 text-sm text-white/50">
                               💡 This custom solution will override the AI proposal when you approve the incident.
                             </div>
                           </div>
@@ -594,25 +578,25 @@ const DutyOfficerDashboard: React.FC = () => {
 
                       {/* Decision Notes */}
                       <div>
-                        <h4 className="text-md font-semibold text-slate-200 mb-3">Decision Notes:</h4>
+                        <h4 className="text-md font-semibold text-white mb-3">Decision Notes:</h4>
                         <textarea
                           value={decisionNotes[incident.id] || ''}
                           onChange={(e) => setDecisionNotes(prev => ({ ...prev, [incident.id]: e.target.value }))}
                           placeholder="Add your decision rationale and notes here..."
-                          className="w-full h-24 bg-slate-800/30 border border-slate-700/40 rounded-lg p-3 text-slate-300 placeholder-slate-500 resize-none focus:outline-none focus:border-cyan-500"
+                          className="w-full h-24 bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-3 text-white/80 placeholder-white/40 resize-none focus:outline-none focus:border-white/20"
                         />
                       </div>
 
                       {/* Action Buttons */}
                       {incident.status === 'pending' && (
-                        <div className="space-y-4 pt-4 border-t border-slate-700/40">
+                        <div className="space-y-4 pt-4 border-t border-white/10">
                           {/* Solution Preview */}
                           {customSolutions[incident.id] && (
-                            <div className="bg-amber-950/20 border border-amber-800/40 rounded-lg p-3">
+                            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
                               <div className="text-sm text-amber-400 font-medium mb-1">
                                 ⚠️ Custom Solution Will Be Used
                               </div>
-                              <div className="text-xs text-slate-300">
+                              <div className="text-xs text-white/70">
                                 Your custom solution will override the AI proposal when approved.
                               </div>
                             </div>
@@ -624,7 +608,7 @@ const DutyOfficerDashboard: React.FC = () => {
                                 handleDecision(incident.id, 'approved');
                                 setSelectedIncident(null);
                               }}
-                              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-emerald-950/30 border border-emerald-800/40 rounded-lg text-emerald-400 hover:bg-emerald-950/50 transition-colors font-medium"
+                              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-emerald-500/20 border border-emerald-500/40 rounded-lg text-emerald-400 hover:bg-emerald-500/30 transition-colors font-medium"
                             >
                               <CheckCircle className="w-5 h-5" />
                               {customSolutions[incident.id] ? 'Approve Custom Solution' : 'Approve AI Solution'}
@@ -634,14 +618,14 @@ const DutyOfficerDashboard: React.FC = () => {
                                 handleDecision(incident.id, 'rejected');
                                 setSelectedIncident(null);
                               }}
-                              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-red-950/30 border border-red-800/40 rounded-lg text-red-400 hover:bg-red-950/50 transition-colors font-medium"
+                              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-red-500/20 border border-red-500/40 rounded-lg text-red-400 hover:bg-red-500/30 transition-colors font-medium"
                             >
                               <XCircle className="w-5 h-5" />
                               Reject Solution
                             </button>
                             <button
                               onClick={() => setSelectedIncident(null)}
-                              className="px-6 py-3 bg-slate-800/30 border border-slate-700/40 rounded-lg text-slate-300 hover:bg-slate-800/50 transition-colors"
+                              className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg text-white/70 hover:bg-white/10 transition-colors"
                             >
                               Cancel
                             </button>
@@ -655,7 +639,6 @@ const DutyOfficerDashboard: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 };

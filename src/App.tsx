@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Shield,
   Package,
   Anchor,
   FileText,
@@ -28,6 +27,7 @@ import vesselRegistryLog from '../Problem Statement 3 - Redefining Level 2 Produ
 
 function App() {
   const [scanningActive, setScanningActive] = useState(true);
+  const [showServiceMonitors, setShowServiceMonitors] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -37,47 +37,30 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-cyan-950/20 via-transparent to-transparent pointer-events-none" />
-      <div className="absolute inset-0 bg-grid-pattern opacity-5 pointer-events-none" />
+    <div className="min-h-screen bg-[#0a0a0a] text-white">
+      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] via-transparent to-white/[0.01] pointer-events-none" />
 
-      <header className="relative border-b border-cyan-900/30 bg-slate-950/50 backdrop-blur-xl">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <Shield className="w-10 h-10 text-cyan-400" />
-                <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full ${scanningActive ? 'bg-cyan-400' : 'bg-cyan-600'} transition-colors duration-300`}>
-                  <div className={`absolute inset-0 rounded-full ${scanningActive ? 'animate-ping bg-cyan-400' : ''}`} />
-                </div>
-              </div>
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-                Sentinel
-              </h1>
-              <p className="text-sm text-slate-400">AI-Powered Event Detection System</p>
-            </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="container mx-auto px-6 py-6 space-y-6">
-        <TabPanel 
+      <TabPanel 
           agentCollabContent={<AgentCollaboration />}
           dutyOfficerContent={<DutyOfficerDashboard />}
           knowledgeBaseContent={<KnowledgeGraph />}
           detectiveContent={<Detective />}
           pathfinderContent={<Pathfinder />}
+          scanningActive={scanningActive}
         >
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              <EventTimeline />
-              <CustomerTickets />
-            </div>
+          <div className="space-y-8">
+            {/* Customer Tickets at the top */}
+            <CustomerTickets />
+
+            {/* Monitor (Event Timeline) */}
+            <EventTimeline 
+              showServiceMonitors={showServiceMonitors}
+              onToggleServiceMonitors={() => setShowServiceMonitors(!showServiceMonitors)}
+            />
 
             {/* Service Monitors Grid - 3 columns x 2 rows */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {showServiceMonitors && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <ServiceMonitor
                 serviceName="EDI Advice Service"
                 logData={ediAdviceLog}
@@ -115,9 +98,9 @@ function App() {
                 color="text-pink-400"
               />
             </div>
+            )}
           </div>
         </TabPanel>
-      </div>
     </div>
   );
 }
