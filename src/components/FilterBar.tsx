@@ -1,17 +1,18 @@
 import React from 'react';
-import { Filter, AlertTriangle, Anchor, FileText, Zap } from 'lucide-react';
+import { Filter, Package, Anchor, FileText, MoreHorizontal, BookOpen } from 'lucide-react';
 
 interface FilterBarProps {
   activeFilters: string[];
   setActiveFilters: (filters: string[]) => void;
+  onOpenKnowledgeGraph: () => void;
 }
 
-const FilterBar: React.FC<FilterBarProps> = ({ activeFilters, setActiveFilters }) => {
+const FilterBar: React.FC<FilterBarProps> = ({ activeFilters, setActiveFilters, onOpenKnowledgeGraph }) => {
   const filters = [
-    { id: 'delays', label: 'Vessel Delays', icon: <Anchor className="w-4 h-4" /> },
-    { id: 'edi', label: 'EDI Errors', icon: <FileText className="w-4 h-4" /> },
-    { id: 'vessel', label: 'Vessel Events', icon: <Anchor className="w-4 h-4" /> },
-    { id: 'critical', label: 'Critical Only', icon: <AlertTriangle className="w-4 h-4" /> },
+    { id: 'cntr', label: 'Container (CNTR)', icon: <Package className="w-4 h-4" /> },
+    { id: 'vs', label: 'Vessel (VS)', icon: <Anchor className="w-4 h-4" /> },
+    { id: 'ea', label: 'EDI/API (EA)', icon: <FileText className="w-4 h-4" /> },
+    { id: 'others', label: 'Others', icon: <MoreHorizontal className="w-4 h-4" /> },
   ];
 
   const toggleFilter = (filterId: string) => {
@@ -47,14 +48,24 @@ const FilterBar: React.FC<FilterBarProps> = ({ activeFilters, setActiveFilters }
           ))}
         </div>
 
-        {activeFilters.length > 0 && (
+        <div className="ml-auto flex items-center gap-3">
+          {activeFilters.length > 0 && (
+            <button
+              onClick={() => setActiveFilters([])}
+              className="text-sm text-slate-400 hover:text-slate-200 underline transition-colors"
+            >
+              Clear all
+            </button>
+          )}
+          
           <button
-            onClick={() => setActiveFilters([])}
-            className="ml-auto text-sm text-slate-400 hover:text-slate-200 underline transition-colors"
+            onClick={onOpenKnowledgeGraph}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border bg-slate-800/50 border-slate-700/40 text-slate-300 hover:border-cyan-600/60 hover:text-cyan-400 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-900/20"
           >
-            Clear all
+            <BookOpen className="w-4 h-4" />
+            <span className="text-sm font-medium">Knowledge Base</span>
           </button>
-        )}
+        </div>
       </div>
     </div>
   );
