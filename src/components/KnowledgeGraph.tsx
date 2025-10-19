@@ -273,6 +273,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ onClose, hideStatistics
       'sys-tos': 'Terminal Operating System - authoritative source for operational data.',
       'sys-portal': 'Customer portal providing visibility into container and vessel information.',
       'ai-detective': 'AI-powered root cause analysis system that investigates issues by analyzing logs, knowledge base, and historical cases to identify and diagnose problems across all modules.',
+      'learned-case-alr861600': 'Learned Knowledge: Container CMAU0000020 duplicate event case (ALR-861600). Root cause: Event deduplication logic failed when two CONTAINER_UPDATE events with identical payload (status=DISCHARGED) were generated within 45 seconds. Correlation ID corr-cont-0001 indicated single transaction generated both events. Solution: Implement stricter idempotency key validation and message content hash checking in Container Service deduplication window (60s). Reference past cases TCK-784521 and ALR-805432 for similar RabbitMQ message redelivery patterns.',
     };
     return descriptions[node.id] || 'No description available.';
   };

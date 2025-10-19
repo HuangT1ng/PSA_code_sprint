@@ -29,44 +29,51 @@ interface SearchActivity {
 
 // Sample issues to analyze - moved outside component to prevent recreating
 const sampleIssues = [
-  { id: 'issue1', name: 'EDI Message Processing Failed - Segment Missing', tag: 'INC-154599' },
+  { id: 'issue1', name: 'Container Snapshot Duplicate - CMAU0000020', tag: 'ALR-861600' },
   { id: 'issue2', name: 'Duplicate Vessel Name - MV Lion City 07', tag: 'ALR-861631' },
-  { id: 'issue3', name: 'Container Snapshot Duplicate - CMAU0000020', tag: 'ALR-861600' },
+  { id: 'issue3', name: 'EDI Message Processing Failed - Segment Missing', tag: 'INC-154599' },
 ];
 
 // Mock root causes database - moved outside component to prevent recreating
 const mockRootCauses: RootCause[] = [
     {
       id: 'rc1',
-      title: 'EDI Message Format Violation - Missing Mandatory LOC Segment',
-      confidence: 94,
-      description: 'The IFTMIN message from LINE-PSA is missing the mandatory LOC (Location) segment required by the PSA-TOS EDI parser. This is a known recurring issue when the sender\'s EDI generator is not updated to the latest specification.',
+      title: 'Container Event Deduplication Failure - Duplicate Container Records in PORTNET',
+      confidence: 91,
+      description: 'Container CMAU0000020 triggered duplicate snapshot events within 45 seconds, bypassing the deduplication logic. Both events were consumed by PORTNET, resulting in identical container records visible to customers.',
       evidence: [
         {
           id: 'e1',
           source: 'logs',
-          timestamp: '2025-10-04T12:25:10Z',
-          content: 'EDI_ERR_1: Segment missing - Expected LOC segment after NAD',
-          relevance: 98
+          timestamp: '2025-10-09T08:25:34Z',
+          content: 'Container Service: Duplicate snapshot event detected - container_id=CMAU0000020, event_type=CONTAINER_UPDATE, status=DISCHARGED, duplicate_window=45s',
+          relevance: 96
         },
         {
           id: 'e2',
           source: 'kb',
-          timestamp: '2024-08-15',
-          content: 'KB-2341: EDI IFTMIN messages must contain LOC segment as per SMDG 3.2 specification',
-          relevance: 92
+          timestamp: '2024-11-20',
+          content: 'KB-1847: Container snapshot deduplication logic - Duplicate events within 60-second window should be suppressed to prevent downstream systems receiving identical container state updates',
+          relevance: 93
         },
         {
           id: 'e3',
           source: 'cases',
-          timestamp: '2025-09-10',
-          content: 'Case TCK-691242: Same sender had 12 similar failures resolved by updating EDI mapping',
-          relevance: 87
+          timestamp: '2025-08-22',
+          content: 'Case TCK-784521: TEMU0000045 - Duplicate snapshot events resolved by implementing idempotency key validation in Container Service',
+          relevance: 89
+        },
+        {
+          id: 'e4',
+          source: 'cases',
+          timestamp: '2025-07-15',
+          content: 'Case ALR-805432: MSCU0000089 - Container appearing twice in PORTNET. Root cause: RabbitMQ message redelivery after timeout',
+          relevance: 85
         }
       ],
-      affectedServices: ['EDI Advice Service', 'Container Service'],
-      impactAnalysis: 'HIGH - Blocking 100% of IFTMIN messages from LINE-PSA. Estimated 45-60 messages per day affected. Container loading instructions not reaching TOS system.',
-      technicalDetails: 'Parser expects LOC segment (Location Details) after NAD segment (Name and Address). LINE-PSA EDI generator v2.3.1 is not compliant with SMDG 3.2 specification which mandates LOC segment for vessel stowage planning.'
+      affectedServices: ['Container Service', 'PORTNET Integration'],
+      impactAnalysis: 'MEDIUM - Customer-facing impact with duplicate container visibility in PORTNET. Single container affected (CMAU0000020). Potential for confusion in container tracking and operations planning.',
+      technicalDetails: 'Container Service processes container state updates and publishes events to RabbitMQ message queue for downstream systems including PORTNET. Event deduplication window (60s) failed to check message content hash properly. Two CONTAINER_UPDATE events with identical payload (status=DISCHARGED) were generated within 45 seconds with correlation_id=corr-cont-0001, indicating single transaction generated both events. Deduplication logic may not be properly validating idempotency keys or message retries bypassed the checks.'
     },
     {
       id: 'rc2',
@@ -543,19 +550,19 @@ const Detective: React.FC = () => {
           onClose={() => setShowKnowledgeGraphModal(false)} 
           hideStatistics={true}
           additionalNode={{
-            id: 'ai-detective',
-            label: 'AI Detective\nAnalyzer',
-            type: 'system',
+            id: 'learned-case-alr861600',
+            label: 'ALR-861600\nDuplicate Container\nDeduplication Failure',
+            type: 'resolution',
             x: 400,
-            y: 420,
+            y: 450,
             vx: 0,
             vy: 0,
-            color: 'rgba(100, 200, 255, 0.7)'
+            color: 'rgba(16, 185, 129, 0.7)'
           }}
           additionalEdges={[
-            { source: 'ai-detective', target: 'cntr', label: 'analyzes' },
-            { source: 'ai-detective', target: 'vsl', label: 'analyzes' },
-            { source: 'ai-detective', target: 'edi', label: 'analyzes' }
+            { source: 'cntr', target: 'learned-case-alr861600', label: 'learned from' },
+            { source: 'learned-case-alr861600', target: 'cntr-duplicate', label: 'resolves' },
+            { source: 'learned-case-alr861600', target: 'res-dedup', label: 'enhances' }
           ]}
         />
       )}

@@ -82,12 +82,12 @@ const TypewriterText: React.FC<{
 const sentinelIncidents = [
   {
     id: 'inc-1',
-    time: 'Oct 4, 12:25',
+    time: 'Oct 9, 08:25',
     level: 'ERROR' as const,
-    service: 'EDI Service',
-    action: 'IFTMIN',
-    entity: 'REF-IFT-0007',
-    message: 'EDI message processing failed - Segment missing',
+    service: 'Container Service',
+    action: 'Duplicate Snapshot',
+    entity: 'CMAU0000020',
+    message: 'Duplicate container information received in PORTNET',
   },
   {
     id: 'inc-2',
@@ -125,13 +125,13 @@ const agentMessages: AgentMessage[] = [
       id: 'p1-1',
       agent: 'planner',
       type: 'thinking',
-      content: '🧠 Step 1 — Understanding the Problem\n\n"EDI translator is missing a segment. This is blocking container timeline processing. Need to assess impact and SLA constraints."',
+      content: '🧠 Step 1 — Understanding the Problem\n\n"Container deduplication filter failed for CMAU0000020. PORTNET now shows duplicate records. Need to assess deduplication logic and impact."',
       timestamp: 0,
       round: 1,
       status: 'pending',
       todo: {
         title: 'Understand the Problem',
-        description: 'Analyze EDI translator issue, assess impact, identify SLA constraints',
+        description: 'Analyze container deduplication failure, assess impact on PORTNET',
         stepNumber: 1
       }
     },
@@ -139,7 +139,7 @@ const agentMessages: AgentMessage[] = [
       id: 'p1-2',
       agent: 'planner',
       type: 'thinking',
-      content: '🧭 Step 2 — Exploring Solution Paths\n\n"Generated three options:\n• Option A: Auto-fix missing segment + reroute\n• Option B: Wait for manual intervention\n• Option C: Manual fix with backup route"',
+      content: '🧭 Step 2 — Exploring Solution Paths\n\n"Generated three options:\n• Option A: Purge duplicate + enable hash validation\n• Option B: Wait for manual intervention\n• Option C: Manual purge with extended window"',
       timestamp: 2,
       round: 1,
       status: 'pending',
@@ -153,20 +153,20 @@ const agentMessages: AgentMessage[] = [
       id: 'p1-3',
       agent: 'planner',
       type: 'proposal',
-      content: '🧩 Step 3 — Initial Plan Proposal\n\n"Proposing Plan A: Auto-fix with backup route and monitoring.\n• Detect missing segment\n• Auto-generate replacement\n• Reroute through backup\n• Monitor success rate"',
+      content: '🧩 Step 3 — Initial Plan Proposal\n\n"Proposing Plan A: Auto-purge with hash validation and monitoring.\n• Identify duplicate record\n• Remove from PORTNET\n• Enable content hash check\n• Monitor deduplication filter"',
       timestamp: 4,
       round: 1,
       status: 'pending',
       todo: {
         title: 'Form Initial Plan',
-        description: 'Propose auto-fix solution with backup route and monitoring',
+        description: 'Propose auto-purge solution with hash validation and monitoring',
         stepNumber: 3
       },
       metadata: {
         confidence: 75,
         riskLevel: 'medium',
         timeToRecover: '2-3 min',
-        blastRadius: 'EDI Translator, Container Timeline'
+        blastRadius: 'Container Service, PORTNET Integration'
       }
     },
 
@@ -220,7 +220,7 @@ const agentMessages: AgentMessage[] = [
       id: 'p2-1',
       agent: 'planner',
       type: 'thinking',
-      content: '🧠 Step 1 — Absorbing Feedback\n\n"Strategist wants safety measures. Good call. Need to integrate canary rollout, rollback conditions, and observability."',
+      content: '🧠 Step 1 — Absorbing Feedback\n\n"Strategist wants safety measures. Good call. Need to integrate progressive validation, rollback conditions, and observability."',
       timestamp: 14,
       round: 2,
       status: 'pending',
@@ -234,13 +234,13 @@ const agentMessages: AgentMessage[] = [
       id: 'p2-2',
       agent: 'planner',
       type: 'proposal',
-      content: '🧭 Step 2 — Integrating Changes\n\n"Modify Plan A to include:\n• Canary ingestion ramping 10% every minute\n• Auto-rollback if error rate exceeds 1%\n• Alert hook before reroute"',
+      content: '🧭 Step 2 — Integrating Changes\n\n"Modify Plan A to include:\n• Progressive validation deployment\n• Auto-rollback if duplicate rate exceeds 1%\n• Alert hook before purge operation"',
       timestamp: 16,
       round: 2,
       status: 'pending',
       todo: {
         title: 'Integrate Changes',
-        description: 'Modify plan with canary rollout, rollback, and alerts',
+        description: 'Modify plan with progressive validation, rollback, and alerts',
         stepNumber: 2
       }
     },
@@ -248,20 +248,20 @@ const agentMessages: AgentMessage[] = [
       id: 'p2-3',
       agent: 'planner',
       type: 'proposal',
-      content: '🧩 Step 3 — Refined Plan\n\n"Refined Plan A_v2: auto-fix with progressive rollout and abort safeguards.\n• Progressive canary deployment\n• Real-time error monitoring\n• Automatic rollback triggers"',
+      content: '🧩 Step 3 — Refined Plan\n\n"Refined Plan A_v2: auto-purge with progressive validation and abort safeguards.\n• Progressive hash validation\n• Real-time duplicate monitoring\n• Automatic rollback triggers"',
       timestamp: 18,
       round: 2,
       status: 'pending',
       todo: {
         title: 'Propose Refined Plan',
-        description: 'Present Plan A_v2 with progressive rollout and safeguards',
+        description: 'Present Plan A_v2 with progressive validation and safeguards',
         stepNumber: 3
       },
       metadata: {
         confidence: 85,
         riskLevel: 'low',
         timeToRecover: '3-4 min',
-        blastRadius: 'EDI Translator, Container Timeline'
+        blastRadius: 'Container Service, PORTNET Integration'
       }
     },
 
@@ -315,13 +315,13 @@ const agentMessages: AgentMessage[] = [
       id: 'p3-1',
       agent: 'planner',
       type: 'thinking',
-      content: '🧠 Step 1 — Accepting Feedback\n\n"Capacity check makes the plan more robust. Will add pre-flight validation."',
+      content: '🧠 Step 1 — Accepting Feedback\n\n"Event window check makes the plan more robust. Will add pre-flight validation."',
       timestamp: 28,
       round: 3,
       status: 'pending',
       todo: {
         title: 'Accept Feedback',
-        description: 'Acknowledge capacity check makes plan more robust',
+        description: 'Acknowledge event window check makes plan more robust',
         stepNumber: 1
       }
     },
@@ -329,7 +329,7 @@ const agentMessages: AgentMessage[] = [
       id: 'p3-2',
       agent: 'planner',
       type: 'proposal',
-      content: '🧭 Step 2 — Finalizing Execution Flow\n\n"Final Plan steps:\n• Verify backup capacity ≥ 30%\n• Run auto-fix on missing segment\n• Reroute message through backup\n• Start canary at 10%, ramp gradually\n• Abort + rollback if error spikes\n• Notify monitoring hooks"',
+      content: '🧭 Step 2 — Finalizing Execution Flow\n\n"Final Plan steps:\n• Verify deduplication window ≥ 60s\n• Identify duplicate CMAU0000020\n• Purge duplicate from PORTNET\n• Enable hash validation gradually\n• Abort + rollback if duplicates spike\n• Notify monitoring hooks"',
       timestamp: 30,
       round: 3,
       status: 'pending',
@@ -356,7 +356,7 @@ const agentMessages: AgentMessage[] = [
         confidence: 93,
         riskLevel: 'low',
         timeToRecover: '3 min',
-        blastRadius: 'EDI Translator, Container Timeline'
+        blastRadius: 'Container Service, PORTNET Integration'
       }
     },
 

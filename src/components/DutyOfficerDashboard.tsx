@@ -80,36 +80,36 @@ const DutyOfficerDashboard: React.FC = () => {
       timestamp: '14:23 UTC'
     },
     {
-      id: 'INC-002',
-      type: 'Inbound Data Failure',
-      service: 'EDI Translator',
+      id: 'ALR-861600',
+      type: 'Duplicate Container Event',
+      service: 'Container Service',
       detectedBy: 'Ticket-Based Sentinel',
       severity: 'medium',
       status: 'pending',
-      problem: 'EDI message REF-IFT-0007 failed to process due to missing segment (EDI_ERR_1). Translator stuck in error state for > 10 minutes. Affected container events are not updated in the timeline.',
+      problem: 'Container CMAU0000020 triggered duplicate snapshot events within 45 seconds, bypassing deduplication logic. PORTNET now displays two identical container records with status=DISCHARGED, causing customer confusion.',
       operationalImpact: [
-        'Containers associated with REF-IFT-0007 will not progress',
-        'Timeline gaps can affect truck scheduling and yard operations',
-        'Delay may propagate to downstream visibility platforms'
+        'Customer sees duplicate container records in PORTNET portal',
+        'Potential confusion in container tracking and operations planning',
+        'May affect downstream systems consuming container events'
       ],
       systemBehavior: [
-        'Validator logs confirm a missing segment at parsing stage',
-        'The system will not retry automatically',
-        'Partners typically resend after 2 hours if no acknowledgment is received'
+        'Deduplication filter configured with 60s window failed to suppress duplicate',
+        'Both events share correlation_id=corr-cont-0001 indicating single transaction',
+        'Idempotency key validation not checking message content hash properly'
       ],
       keyConsiderations: [
-        { type: 'pro', text: 'Issue can be recovered by validating and reprocessing message internally' },
-        { type: 'warning', text: 'Manual fix is possible but slow' },
-        { type: 'timing', text: 'Waiting for partner resend breaches SLA and visibility timelines' }
+        { type: 'pro', text: 'Issue can be resolved by purging duplicate and enabling hash validation' },
+        { type: 'warning', text: 'Manual purge requires PORTNET sync verification' },
+        { type: 'timing', text: 'Delayed fix risks more duplicates if deduplication remains broken' }
       ],
-      nextStep: 'Decide whether to recover internally or wait for external resend. Acknowledge partner once timeline consistency is restored.',
+      nextStep: 'Decide whether to purge duplicate immediately or wait for customer confirmation. Enable strict hash validation to prevent recurrence.',
       proposedSolution: {
-        title: 'Internal Message Recovery with Segment Validation',
-        description: 'Manually validate and reprocess the EDI message internally, then send acknowledgment to partner to maintain SLA compliance.',
+        title: 'Duplicate Purge with Hash Validation Enhancement',
+        description: 'Identify and remove duplicate CMAU0000020 record from PORTNET, then enable strict content hash validation in Container Service deduplication filter.',
         estimatedTime: '8-12 minutes',
         riskLevel: 'low',
-        blastRadius: 'EDI Translator, Container Timeline',
-        confidence: 94
+        blastRadius: 'Container Service, PORTNET Integration',
+        confidence: 91
       },
       timestamp: '14:18 UTC'
     },
@@ -195,27 +195,50 @@ const DutyOfficerDashboard: React.FC = () => {
     if (decision === 'approved') {
       const incident = incidents.find(inc => inc.id === incidentId);
       if (incident) {
+        // Determine assigned team based on service
+        let assignedTeam = 'Platform Team';
+        if (incident.service.includes('EDI')) {
+          assignedTeam = 'EDI Integration Team';
+        } else if (incident.service.includes('Vessel')) {
+          assignedTeam = 'Vessel Operations Team';
+        } else if (incident.service.includes('Container')) {
+          assignedTeam = 'Container Services Team';
+        }
+        
+        // Customize next steps based on incident type
+        let nextSteps = [
+          'Ticket created and assigned to ' + assignedTeam,
+          'Automated notifications sent to stakeholders',
+          'Monitoring alerts configured for issue tracking',
+          'Escalation timer started for SLA tracking'
+        ];
+        
+        if (incident.service.includes('Container')) {
+          nextSteps = [
+            'Ticket ALR-861600 linked and assigned to Container Services Team',
+            'PORTNET sync verification scheduled for duplicate purge',
+            'Hash validation enhancement deployed to Container Service',
+            'Monitoring alerts configured for duplicate event detection'
+          ];
+        }
+        
         const escalation = {
           ticketId: `ESCAL-${Date.now()}`,
           priority: incident.severity === 'critical' ? 'P1 - Critical' : incident.severity === 'high' ? 'P2 - High' : 'P3 - Medium',
-          assignedTeam: incident.service.includes('EDI') ? 'EDI Integration Team' : incident.service.includes('Vessel') ? 'Vessel Operations Team' : 'Platform Team',
+          assignedTeam: assignedTeam,
           estimatedResolution: incident.proposedSolution?.estimatedTime || '30-45 minutes',
           notificationsSent: [
             'Product Team Lead',
             'Technical Support Manager', 
             'On-Call Engineer',
-            'Service Owner'
+            'Service Owner',
+            ...(incident.service.includes('Container') ? ['Container Service Owner', 'PORTNET Integration Lead'] : [])
           ],
           ticketingSystem: 'Jira',
           ticketUrl: `https://jira.psa.com/browse/PROD-${Math.floor(Math.random() * 10000)}`,
-          slackChannel: '#incident-response',
+          slackChannel: incident.service.includes('Container') ? '#container-ops-incidents' : '#incident-response',
           runbookUrl: 'https://wiki.psa.com/runbooks/incident-response',
-          nextSteps: [
-            'Ticket created and assigned to ' + (incident.service.includes('EDI') ? 'EDI Integration Team' : 'Platform Team'),
-            'Automated notifications sent to stakeholders',
-            'Monitoring alerts configured for issue tracking',
-            'Escalation timer started for SLA tracking'
-          ]
+          nextSteps: nextSteps
         };
         
         setEscalationData(prev => ({ ...prev, [incidentId]: escalation }));

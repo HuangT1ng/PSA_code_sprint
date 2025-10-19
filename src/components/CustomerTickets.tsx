@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Ticket, Mail, MessageSquare, Phone, AlertCircle, User } from 'lucide-react';
+import { Ticket, Mail, MessageSquare, Phone, AlertCircle, User, X } from 'lucide-react';
 
 interface TicketRequest {
   id: string;
@@ -71,6 +71,7 @@ const ALL_TICKETS: TicketRequest[] = [
 const CustomerTickets: React.FC = () => {
   const [tickets, setTickets] = useState<TicketRequest[]>([ALL_TICKETS[0]]);
   const [_currentIndex, setCurrentIndex] = useState(0);
+  const [showEmailModal, setShowEmailModal] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -159,21 +160,22 @@ const CustomerTickets: React.FC = () => {
   };
 
   return (
-    <div className="relative bg-[#6b5d4f]/20 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden shadow-sm">
-      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent pointer-events-none" />
+    <>
+      <div className="relative bg-[#6b5d4f]/20 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden shadow-sm">
+        <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent pointer-events-none" />
 
-      <div className="relative px-8 py-5 border-b border-white/10">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Ticket className="w-5 h-5 text-white" />
-            <h2 className="text-2xl font-medium text-white tracking-tight">Customer Tickets</h2>
-          </div>
-          <div className="flex items-center gap-2 px-4 py-1.5 bg-emerald-500/20 border border-emerald-500/40 rounded-full">
-            <AlertCircle className="w-4 h-4 text-emerald-400" />
-            <span className="text-xs font-mono font-medium text-emerald-400 tracking-wider">{tickets.length} ACTIVE</span>
+        <div className="relative px-8 py-5 border-b border-white/10">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Ticket className="w-5 h-5 text-white" />
+              <h2 className="text-2xl font-medium text-white tracking-tight">Customer Tickets</h2>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-1.5 bg-emerald-500/20 border border-emerald-500/40 rounded-full">
+              <AlertCircle className="w-4 h-4 text-emerald-400" />
+              <span className="text-xs font-mono font-medium text-emerald-400 tracking-wider">{tickets.length} ACTIVE</span>
+            </div>
           </div>
         </div>
-      </div>
 
       <div 
         ref={scrollRef}
@@ -200,7 +202,14 @@ const CustomerTickets: React.FC = () => {
               >
                 <div className={`absolute left-0 top-0 -ml-[5px] w-[10px] h-[10px] rounded-full ${priorityStyle.dotBg} border ${priorityStyle.border}`} />
                 
-          <div className={`group p-4 rounded-xl border ${priorityStyle.border} ${priorityStyle.bg} hover:shadow-xl transition-all duration-300 hover:scale-[1.01]`}>
+          <div 
+            className={`group p-4 rounded-xl border ${priorityStyle.border} ${priorityStyle.bg} hover:shadow-xl transition-all duration-300 hover:scale-[1.01] ${ticket.id === '1' ? 'cursor-pointer' : ''}`}
+            onClick={() => {
+              if (ticket.id === '1') {
+                setShowEmailModal(true);
+              }
+            }}
+          >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <span className="text-white/60">{getTypeIcon(ticket.type)}</span>
@@ -238,7 +247,71 @@ const CustomerTickets: React.FC = () => {
           })}
         </div>
       </div>
-    </div>
+      </div>
+
+      {/* Email Detail Modal - Rendered outside container as full-screen overlay */}
+      {showEmailModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-[9999]">
+          <div className="bg-[#6b5d4f]/30 backdrop-blur-xl border border-white/20 rounded-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-[#0a0a0a]/95 backdrop-blur-sm border-b border-white/10 px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Mail className="w-5 h-5 text-white" />
+                <h3 className="text-lg font-semibold text-white">Email Details</h3>
+              </div>
+              <button
+                onClick={() => setShowEmailModal(false)}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-white/60 hover:text-white" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-4">
+              {/* Email Header */}
+              <div className="space-y-3 pb-4 border-b border-white/10">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-white/50">Subject:</span>
+                  <span className="text-sm font-semibold text-white">RE: Email ALR-861600 | CMAU0000020 - Duplicate Container information received</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-white/50">To:</span>
+                  <span className="text-sm text-white">Ops Team Duty; Jen</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-white/50">Cc:</span>
+                  <span className="text-sm text-white">Customer Service</span>
+                </div>
+              </div>
+
+              {/* Email Body */}
+              <div className="space-y-4">
+                <p className="text-sm text-white/80">Hi Jen,</p>
+                <p className="text-sm text-white/80">
+                  Please assist in checking container <span className="font-mono font-semibold text-cyan-400">CMAU0000020</span>. Customer on PORTNET is seeing 2 identical containers information.
+                </p>
+                <p className="text-sm text-white/80">Thanks.</p>
+                <div className="pt-2">
+                  <p className="text-sm text-white/80">Regards,</p>
+                  <p className="text-sm font-semibold text-white">Kenny</p>
+                </div>
+              </div>
+
+              {/* Close Button */}
+              <div className="flex justify-end pt-4 border-t border-white/10">
+                <button
+                  onClick={() => setShowEmailModal(false)}
+                  className="px-6 py-2 bg-white/10 border border-white/20 rounded-lg text-white hover:bg-white/20 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

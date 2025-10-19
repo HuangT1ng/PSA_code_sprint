@@ -52,14 +52,14 @@ interface AgentThought {
 const novelIssues: NovelIssue[] = [
   {
     id: 'novel1',
-    name: 'EDI message REF-IFT-0007 stuck in ERROR status',
-    tag: 'TCK-742311',
+    name: 'Duplicate Container CMAU0000020 in PORTNET',
+    tag: 'ALR-861600',
     symptoms: [
-      'No acknowledgment sent to shipping line',
-      'Message stuck in ERROR state for 45+ minutes',
-      'EDI parser completed successfully',
-      'No retry attempts being triggered',
-      'Acknowledgment queue shows no pending items'
+      'Customer seeing 2 identical container records in PORTNET',
+      'Both records show status=DISCHARGED',
+      'Events generated within 45 second window',
+      'Deduplication logic failed to suppress duplicate',
+      'Correlation ID corr-cont-0001 on both events'
     ]
   },
   {
@@ -137,45 +137,45 @@ const Pathfinder: React.FC = () => {
     // Phase 2: Probing causal graph (8 seconds)
     setTimeout(() => {
       addThought('Building causal dependency graph...', 'action');
-      addThought('Analyzing EDI message flow and acknowledgment chain', 'analysis');
+      addThought('Analyzing container event flow and deduplication chain', 'analysis');
       
       // Add causal nodes progressively
       const nodes: CausalNode[] = [
-        { id: 'n1', name: 'EDI Parser', status: 'checking', details: 'Message parsing engine' },
+        { id: 'n1', name: 'Container Service', status: 'checking', details: 'Container snapshot engine' },
         { id: 'n2', name: 'Message Queue', status: 'checking', details: 'RabbitMQ broker' },
-        { id: 'n3', name: 'ACK Generator', status: 'checking', details: 'Acknowledgment service' },
-        { id: 'n4', name: 'Outbound Gateway', status: 'checking', details: 'External EDI sender' },
-        { id: 'n5', name: 'DB Transaction', status: 'checking', details: 'State persistence' },
+        { id: 'n3', name: 'Deduplication Filter', status: 'checking', details: 'Event dedup logic' },
+        { id: 'n4', name: 'PORTNET Gateway', status: 'checking', details: 'Customer portal sync' },
+        { id: 'n5', name: 'Idempotency Check', status: 'checking', details: 'Hash validation' },
       ];
       
       setCausalNodes(nodes);
     }, 5000);
 
     setTimeout(() => {
-      addThought('Probing EDI Parser... Parsing completed successfully', 'result');
+      addThought('Probing Container Service... Snapshot generation working', 'result');
       setCausalNodes(prev => prev.map(n => n.id === 'n1' ? { ...n, status: 'clear' } : n));
     }, 6000);
 
     setTimeout(() => {
-      addThought('Probing Message Queue... Queue operational, no backlogs', 'result');
-      setCausalNodes(prev => prev.map(n => n.id === 'n2' ? { ...n, status: 'clear' } : n));
+      addThought('Probing Message Queue... Two events detected within 45s window', 'result');
+      setCausalNodes(prev => prev.map(n => n.id === 'n2' ? { ...n, status: 'suspicious' } : n));
     }, 7000);
 
     setTimeout(() => {
-      addThought('Probing ACK Generator... Service running but no activity', 'result');
-      setCausalNodes(prev => prev.map(n => n.id === 'n3' ? { ...n, status: 'suspicious' } : n));
+      addThought('Probing Deduplication Filter... 60s window configured correctly', 'result');
+      setCausalNodes(prev => prev.map(n => n.id === 'n3' ? { ...n, status: 'clear' } : n));
     }, 8000);
 
     setTimeout(() => {
-      addThought('Probing Outbound Gateway... Connection pool healthy', 'result');
+      addThought('Probing PORTNET Gateway... Both events consumed successfully', 'result');
       setCausalNodes(prev => prev.map(n => n.id === 'n4' ? { ...n, status: 'clear' } : n));
     }, 9000);
 
     setTimeout(() => {
-      addThought('Probing DB Transaction... DEADLOCK DETECTED!', 'result');
-      addThought('Transaction isolation level: SERIALIZABLE', 'analysis');
-      addThought('Lock wait timeout: Message stuck in "processing" state', 'analysis');
-      addThought('Hypothesis: Orphaned DB lock preventing ACK generation', 'hypothesis');
+      addThought('Probing Idempotency Check... VALIDATION BYPASS DETECTED!', 'result');
+      addThought('Correlation ID corr-cont-0001 on both events', 'analysis');
+      addThought('Message content hash not being validated properly', 'analysis');
+      addThought('Hypothesis: Idempotency key check failing for identical payloads', 'hypothesis');
       setCausalNodes(prev => prev.map(n => n.id === 'n5' ? { ...n, status: 'root_cause' } : n));
       setCurrentPhase('solving');
       setProgress(45);
@@ -186,43 +186,43 @@ const Pathfinder: React.FC = () => {
       addThought('Generating safe micro-fix strategies...', 'action');
       
       const fixes: MicroFix[] = [
-        { id: 'fix1', action: 'Kill orphaned DB transaction and reset message state', type: 'flush', risk: 'low', status: 'pending' },
-        { id: 'fix2', action: 'Lower transaction isolation to READ COMMITTED', type: 'config', risk: 'medium', status: 'pending' },
-        { id: 'fix3', action: 'Reroute message to backup ACK processor', type: 'reroute', risk: 'low', status: 'pending' },
-        { id: 'fix4', action: 'Restart EDI acknowledgment service', type: 'restart', risk: 'medium', status: 'pending' },
+        { id: 'fix1', action: 'Purge duplicate event from PORTNET and enable strict hash validation', type: 'flush', risk: 'low', status: 'pending' },
+        { id: 'fix2', action: 'Adjust deduplication window to 90 seconds with stricter rules', type: 'config', risk: 'medium', status: 'pending' },
+        { id: 'fix3', action: 'Implement content-based idempotency key generation', type: 'config', risk: 'low', status: 'pending' },
+        { id: 'fix4', action: 'Restart Container Service with enhanced validation', type: 'restart', risk: 'medium', status: 'pending' },
       ];
       
       setMicroFixes(fixes);
       addThought('Generated 4 potential fix strategies', 'result');
-      addThought('Selecting lowest-risk option: Kill orphaned transaction', 'hypothesis');
+      addThought('Selecting lowest-risk option: Purge duplicate and enable validation', 'hypothesis');
     }, 13000);
 
     // Phase 4: Testing fixes (12 seconds)
     setTimeout(() => {
       setCurrentPhase('testing');
       setProgress(60);
-      addThought('Testing Fix #1: Kill orphaned transaction & reset state', 'action');
+      addThought('Testing Fix #1: Purge duplicate & enable validation', 'action');
       setMicroFixes(prev => prev.map(f => f.id === 'fix1' ? { ...f, status: 'testing' } : f));
     }, 15000);
 
     setTimeout(() => {
-      addThought('Identifying transaction ID: tx-edi-4721...', 'action');
+      addThought('Identifying duplicate record: CMAU0000020 in PORTNET...', 'action');
     }, 16000);
 
     setTimeout(() => {
-      addThought('Transaction killed successfully', 'result');
-      addThought('Resetting message REF-IFT-0007 to PENDING state...', 'action');
+      addThought('Duplicate record purged successfully', 'result');
+      addThought('Enabling strict content hash validation in deduplication filter...', 'action');
     }, 18000);
 
     setTimeout(() => {
-      addThought('Message state reset complete', 'result');
-      addThought('Triggering acknowledgment generation...', 'action');
+      addThought('Validation rules updated', 'result');
+      addThought('Testing with new container event to verify deduplication...', 'action');
     }, 20000);
 
     setTimeout(() => {
-      addThought('Acknowledgment generated and queued for delivery', 'result');
-      addThought('EDI message status: ERROR → ACKNOWLEDGED', 'result');
-      addThought('FIX SUCCESSFUL! Acknowledgment sent to shipping line', 'result');
+      addThought('Duplicate event correctly suppressed', 'result');
+      addThought('Container CMAU0000020: PORTNET shows single record', 'result');
+      addThought('FIX SUCCESSFUL! Deduplication logic working correctly', 'result');
       setMicroFixes(prev => {
         const updated = prev.map(f => f.id === 'fix1' ? { ...f, status: 'success' as const } : f);
         setSuccessfulFix(updated[0]);
@@ -238,7 +238,7 @@ const Pathfinder: React.FC = () => {
     }, 24000);
 
     setTimeout(() => {
-      addThought('Playbook created: "EDI Orphaned Transaction Recovery"', 'result');
+      addThought('Playbook created: "Container Event Deduplication Recovery"', 'result');
       addThought('Future similar issues can now use this playbook', 'result');
       setPlaybookCreated(true);
       setCurrentPhase('complete');
@@ -529,12 +529,12 @@ const Pathfinder: React.FC = () => {
               <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-lg p-4 space-y-3">
                 <div>
                   <span className="text-xs text-white/60">Playbook Name:</span>
-                  <p className="text-sm font-semibold text-emerald-400 mt-1">EDI Orphaned Transaction Recovery</p>
+                  <p className="text-sm font-semibold text-emerald-400 mt-1">Container Event Deduplication Recovery</p>
                 </div>
                 
                 <div>
                   <span className="text-xs text-white/60">Root Cause:</span>
-                  <p className="text-sm text-white/80 mt-1">Orphaned database transaction lock preventing acknowledgment service from processing message REF-IFT-0007</p>
+                  <p className="text-sm text-white/80 mt-1">Idempotency key validation bypass causing duplicate container CMAU0000020 events to reach PORTNET within 45s window</p>
                 </div>
                 
                 <div>
