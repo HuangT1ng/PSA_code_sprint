@@ -14,7 +14,7 @@ import {
 interface AgentMessage {
   id: string;
   agent: 'planner' | 'strategist' | 'system';
-  type: 'thinking' | 'proposal' | 'critique' | 'agreement' | 'system' | 'clear';
+  type: 'thinking' | 'proposal' | 'critique' | 'agreement' | 'system' | 'clear' | 'approval';
   content: string;
   timestamp: number;
   round: number;
@@ -91,12 +91,12 @@ const sentinelIncidents = [
   },
   {
     id: 'inc-2',
-    time: 'Oct 8, 09:14',
+    time: 'Oct 4, 12:25',
     level: 'ERROR' as const,
-    service: 'Vessel Advice',
-    action: 'Create Advice',
-    entity: 'MV Lion City 07',
-    message: 'System vessel name already in use by active advice',
+    service: 'EDI Service',
+    action: 'IFTMIN',
+    entity: 'REF-IFT-0007',
+    message: 'EDI message processing failed - Segment missing',
   },
   {
     id: 'inc-3',
@@ -119,7 +119,7 @@ const sentinelIncidents = [
 ];
 
 // Define messages outside component to avoid recreation
-const agentMessages: AgentMessage[] = [
+const containerMessages: AgentMessage[] = [
     // Round 1 - Planner
     {
       id: 'p1-1',
@@ -405,12 +405,300 @@ const agentMessages: AgentMessage[] = [
     }
   ];
 
+// EDI incident messages
+const ediMessages: AgentMessage[] = [
+    // Round 1 - Planner
+    {
+      id: 'p1-1',
+      agent: 'planner',
+      type: 'thinking',
+      content: '🧠 Step 1 — Understanding the Problem\n\n"EDI message REF-IFT-0007 failed processing due to missing segment. Translator stuck in error state. Need to assess segment validation and recovery options."',
+      timestamp: 0,
+      round: 1,
+      status: 'pending',
+      todo: {
+        title: 'Understand the Problem',
+        description: 'Analyze EDI processing failure, assess impact on container timeline',
+        stepNumber: 1
+      }
+    },
+    {
+      id: 'p1-2',
+      agent: 'planner',
+      type: 'thinking',
+      content: '🧭 Step 2 — Exploring Solution Paths\n\n"Generated three options:\n• Option A: Patch segment + reprocess internally\n• Option B: Request partner resend\n• Option C: Manual fix with relaxed validation"',
+      timestamp: 2,
+      round: 1,
+      status: 'pending',
+      todo: {
+        title: 'Explore Solution Paths',
+        description: 'Generate multiple solution options with pros/cons analysis',
+        stepNumber: 2
+      }
+    },
+    {
+      id: 'p1-3',
+      agent: 'planner',
+      type: 'proposal',
+      content: '🧩 Step 3 — Initial Plan Proposal\n\n"Proposing Plan A: Auto-patch with segment validation and monitoring.\n• Identify missing LOC segment\n• Patch with default values\n• Reprocess through translator\n• Monitor timeline updates"',
+      timestamp: 4,
+      round: 1,
+      status: 'pending',
+      todo: {
+        title: 'Form Initial Plan',
+        description: 'Propose auto-patch solution with segment validation and monitoring',
+        stepNumber: 3
+      },
+      metadata: {
+        confidence: 75,
+        riskLevel: 'medium',
+        timeToRecover: '8-12 min',
+        blastRadius: 'EDI Translator, Container Timeline'
+      }
+    },
+
+    // Round 1 - Strategist
+    {
+      id: 's1-1',
+      agent: 'strategist',
+      type: 'thinking',
+      content: '🧠 Step 1 — Evaluating Each Candidate\n\n"Scoring options:\n• Plan A: Moderate speed (8-12min), low-medium risk\n• Plan B: Slow (2+ hours), depends on partner\n• Plan C: Fast but high risk to data integrity"',
+      timestamp: 6,
+      round: 1,
+      status: 'pending',
+      todo: {
+        title: 'Evaluate Each Candidate',
+        description: 'Score all solution options based on speed, risk, and feasibility',
+        stepNumber: 1
+      }
+    },
+    {
+      id: 's1-2',
+      agent: 'strategist',
+      type: 'critique',
+      content: '📊 Step 2 — Identifying Weaknesses\n\n"Plan A has gaps:\n• No validation of patched segment accuracy\n• No rollback if reprocessing fails\n• Missing acknowledgment to partner system"',
+      timestamp: 8,
+      round: 1,
+      status: 'pending',
+      todo: {
+        title: 'Identify Weaknesses',
+        description: 'Find potential failure points and missing safeguards',
+        stepNumber: 2
+      }
+    },
+    {
+      id: 's1-3',
+      agent: 'strategist',
+      type: 'critique',
+      content: '⚔️ Step 3 — Recommending Improvements\n\n"Add safety measures:\n• Validate patched segment against manifest\n• Enable rollback if container data inconsistent\n• Send acknowledgment to partner after success"',
+      timestamp: 10,
+      round: 1,
+      status: 'pending',
+      todo: {
+        title: 'Recommend Improvements',
+        description: 'Suggest specific safety measures and safeguards',
+        stepNumber: 3
+      }
+    },
+
+
+    // Round 2 - Planner
+    {
+      id: 'p2-1',
+      agent: 'planner',
+      type: 'thinking',
+      content: '🧠 Step 1 — Absorbing Feedback\n\n"Strategist wants safety measures. Good call. Need to integrate segment validation, rollback conditions, and partner acknowledgment."',
+      timestamp: 14,
+      round: 2,
+      status: 'pending',
+      todo: {
+        title: 'Absorb Feedback',
+        description: 'Accept and integrate strategist safety recommendations',
+        stepNumber: 1
+      }
+    },
+    {
+      id: 'p2-2',
+      agent: 'planner',
+      type: 'proposal',
+      content: '🧭 Step 2 — Integrating Changes\n\n"Modify Plan A to include:\n• Cross-validate patched segment with manifest\n• Auto-rollback if timeline data inconsistent\n• Send partner acknowledgment after success"',
+      timestamp: 16,
+      round: 2,
+      status: 'pending',
+      todo: {
+        title: 'Integrate Changes',
+        description: 'Modify plan with validation, rollback, and acknowledgment',
+        stepNumber: 2
+      }
+    },
+    {
+      id: 'p2-3',
+      agent: 'planner',
+      type: 'proposal',
+      content: '🧩 Step 3 — Refined Plan\n\n"Refined Plan A_v2: auto-patch with validation and abort safeguards.\n• Segment validation with manifest\n• Real-time timeline monitoring\n• Automatic rollback triggers"',
+      timestamp: 18,
+      round: 2,
+      status: 'pending',
+      todo: {
+        title: 'Propose Refined Plan',
+        description: 'Present Plan A_v2 with validation and safeguards',
+        stepNumber: 3
+      },
+      metadata: {
+        confidence: 85,
+        riskLevel: 'low',
+        timeToRecover: '10-15 min',
+        blastRadius: 'EDI Translator, Container Timeline'
+      }
+    },
+
+    // Round 2 - Strategist
+    {
+      id: 's2-1',
+      agent: 'strategist',
+      type: 'thinking',
+      content: '🧠 Step 1 — Re-Evaluating\n\n"Now we have validation and rollback in place. Much better safety profile."',
+      timestamp: 20,
+      round: 2,
+      status: 'pending',
+      todo: {
+        title: 'Re-Evaluate',
+        description: 'Assess improved plan with new safety measures',
+        stepNumber: 1
+      }
+    },
+    {
+      id: 's2-2',
+      agent: 'strategist',
+      type: 'critique',
+      content: '📊 Step 2 — Probing Remaining Gaps\n\n"But what if partner expects different segment format? Need to check EDI schema version compatibility before patching."',
+      timestamp: 22,
+      round: 2,
+      status: 'pending',
+      todo: {
+        title: 'Probe Remaining Gaps',
+        description: 'Identify any remaining potential failure points',
+        stepNumber: 2
+      }
+    },
+    {
+      id: 's2-3',
+      agent: 'strategist',
+      type: 'critique',
+      content: '⚔️ Step 3 — Additional Improvement\n\n"Add a pre-check: verify EDI schema version matches expected format. This prevents incompatible segment patching."',
+      timestamp: 24,
+      round: 2,
+      status: 'pending',
+      todo: {
+        title: 'Additional Improvement',
+        description: 'Add schema validation to prevent format mismatch',
+        stepNumber: 3
+      }
+    },
+
+
+    // Round 3 - Planner
+    {
+      id: 'p3-1',
+      agent: 'planner',
+      type: 'thinking',
+      content: '🧠 Step 1 — Accepting Feedback\n\n"Schema version check makes the plan more robust. Will add pre-flight validation."',
+      timestamp: 28,
+      round: 3,
+      status: 'pending',
+      todo: {
+        title: 'Accept Feedback',
+        description: 'Acknowledge schema check makes plan more robust',
+        stepNumber: 1
+      }
+    },
+    {
+      id: 'p3-2',
+      agent: 'planner',
+      type: 'proposal',
+      content: '🧭 Step 2 — Finalizing Execution Flow\n\n"Final Plan steps:\n• Verify EDI schema version matches\n• Identify missing LOC segment\n• Patch with manifest-validated defaults\n• Reprocess through translator\n• Abort + rollback if timeline inconsistent\n• Send partner acknowledgment"',
+      timestamp: 30,
+      round: 3,
+      status: 'pending',
+      todo: {
+        title: 'Finalize Execution Flow',
+        description: 'Define complete step-by-step execution process',
+        stepNumber: 2
+      }
+    },
+    {
+      id: 'p3-3',
+      agent: 'planner',
+      type: 'proposal',
+      content: '🧩 Step 3 — Final Plan\n\n"This is safer, efficient, and has fallback. Plan A_v3 ready for approval."',
+      timestamp: 32,
+      round: 3,
+      status: 'pending',
+      todo: {
+        title: 'Present Final Plan',
+        description: 'Deliver Plan A_v3 as final proposal',
+        stepNumber: 3
+      },
+      metadata: {
+        confidence: 93,
+        riskLevel: 'low',
+        timeToRecover: '10 min',
+        blastRadius: 'EDI Translator, Container Timeline'
+      }
+    },
+
+    // Round 3 - Strategist
+    {
+      id: 's3-1',
+      agent: 'strategist',
+      type: 'thinking',
+      content: '🧠 Step 1 — Final Evaluation\n\n"Plan A_v3 looks solid. All major risks addressed. Schema validation, rollback, and acknowledgment all in place."',
+      timestamp: 34,
+      round: 3,
+      status: 'pending',
+      todo: {
+        title: 'Final Evaluation',
+        description: 'Perform final risk assessment on Plan A_v3',
+        stepNumber: 1
+      }
+    },
+    {
+      id: 's3-2',
+      agent: 'strategist',
+      type: 'critique',
+      content: '📊 Step 2 — Last Check\n\n"Timeline monitoring looks good. Partner acknowledgment ensures visibility. Rollback protects data integrity."',
+      timestamp: 36,
+      round: 3,
+      status: 'pending',
+      todo: {
+        title: 'Last Check',
+        description: 'Verify all safeguards are properly implemented',
+        stepNumber: 2
+      }
+    },
+    {
+      id: 's3-3',
+      agent: 'strategist',
+      type: 'approval',
+      content: '✅ Step 3 — APPROVAL\n\n"Plan A_v3 is APPROVED. Risk is low, recovery time acceptable, and all safety measures are in place. Ready to execute."',
+      timestamp: 38,
+      round: 3,
+      status: 'pending',
+      todo: {
+        title: 'Grant Approval',
+        description: 'Approve Plan A_v3 for execution',
+        stepNumber: 3
+      }
+    }
+  ];
+
 const AgentCollaboration: React.FC<AgentCollaborationProps> = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [currentRound, setCurrentRound] = useState(0);
   const [messages, setMessages] = useState<AgentMessage[]>([]);
   const [plannerThinking, setPlannerThinking] = useState(false);
   const [strategistThinking, setStrategistThinking] = useState(false);
+  const [agentMessages, setAgentMessages] = useState<AgentMessage[]>(containerMessages);
   const [finalSolution, setFinalSolution] = useState<string | null>(null);
   const [showFinalSolution, setShowFinalSolution] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
@@ -533,12 +821,16 @@ Planner & Strategist Joint Resolution:
       console.error('Error in handleMessageComplete:', error);
       setIsRunning(false);
     }
-  }, [completedSteps]);
+  }, [completedSteps, agentMessages]);
 
   const startCollaboration = (incidentId: string) => {
     console.log('Starting collaboration for incident:', incidentId);
     setSelectedIncident(incidentId);
     setIsLoading(true);
+    
+    // Select appropriate messages based on incident
+    const selectedMessages = incidentId === 'inc-2' ? ediMessages : containerMessages;
+    setAgentMessages(selectedMessages);
     
     // Show loading for 2 seconds
     setTimeout(() => {
@@ -556,8 +848,8 @@ Planner & Strategist Joint Resolution:
       // Show todos first, then start the first message after a delay
       setTimeout(() => {
         try {
-          // Start with the first message
-          const firstMessage = agentMessages[0];
+          // Start with the first message from selectedMessages
+          const firstMessage = selectedMessages[0];
           if (firstMessage) {
             setMessages([{ ...firstMessage, status: 'active', isTyping: true }]);
             setCurrentRound(firstMessage.round);

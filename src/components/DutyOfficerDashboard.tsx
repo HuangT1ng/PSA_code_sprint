@@ -46,36 +46,36 @@ interface Incident {
 const DutyOfficerDashboard: React.FC = () => {
   const [incidents, setIncidents] = useState<Incident[]>([
     {
-      id: 'INC-001',
-      type: 'Schedule Drift',
-      service: 'Vessel / Berth Planning',
+      id: 'INC-154599',
+      type: 'EDI Message Processing Failure',
+      service: 'EDI Translator',
       detectedBy: 'Real-Time Sentinel',
       severity: 'high',
       status: 'pending',
-      problem: 'ETA/ETB for VESSEL_ID is out of sync by 90 minutes between Berth Plan and TOS. Partner portal shows outdated ETA → pilotage request delayed. Crane allocation already done based on wrong time window.',
+      problem: 'EDI message REF-IFT-0007 failed to process due to missing segment (EDI_ERR_1). Translator stuck in error state for > 10 minutes. Affected container events are not updated in the timeline.',
       operationalImpact: [
-        'Wrong berth window = misaligned crane work orders',
-        'Possible TOS and resource allocation conflict downstream',
-        'SLA breach if not corrected before vessel arrival'
+        'Containers associated with REF-IFT-0007 will not progress in timeline',
+        'Timeline gaps can affect truck scheduling and yard operations',
+        'Delay may propagate to downstream visibility platforms'
       ],
       systemBehavior: [
-        'Automatic refresh will happen in 2 hours, but crane plan already locked',
-        'Downstream services (pilotage + portal) depend on ETA alignment',
-        'Multiple past incidents of similar nature caused > 2h delays'
+        'Validator logs confirm missing LOC segment at parsing stage',
+        'The system will not retry automatically for this error type',
+        'Partners typically resend after 2 hours if no acknowledgment is received'
       ],
       keyConsiderations: [
-        { type: 'pro', text: 'Synchronizing ETA manually requires pilotage confirmation' },
-        { type: 'warning', text: 'Forcing an immediate sync can disrupt crane shifts mid-operation' },
-        { type: 'timing', text: 'Waiting for auto-correction risks knock-on delays and penalties' }
+        { type: 'pro', text: 'Issue can be recovered by validating and patching segment internally' },
+        { type: 'warning', text: 'Manual fix possible but requires manifest cross-validation' },
+        { type: 'timing', text: 'Waiting for partner resend breaches SLA and visibility timelines' }
       ],
-      nextStep: 'Choose reconciliation timing & method. Confirm pilotage alignment before recalculating berth window. Trigger downstream notifications after confirmation.',
+      nextStep: 'Decide whether to patch segment internally or wait for external resend. Acknowledge partner once timeline consistency is restored.',
       proposedSolution: {
-        title: 'Immediate ETA Synchronization with Crane Reallocation',
-        description: 'Execute immediate ETA sync with pilotage confirmation, then trigger crane work order recalculation to prevent downstream conflicts.',
-        estimatedTime: '15-20 minutes',
-        riskLevel: 'medium',
-        blastRadius: 'Berth Planning, Crane Ops, Pilotage Services',
-        confidence: 87
+        title: 'Internal Segment Validation and Recovery',
+        description: 'Identify missing LOC segment, patch with manifest-validated defaults, then reprocess EDI message through translator to restore container timeline updates.',
+        estimatedTime: '8-12 minutes',
+        riskLevel: 'low',
+        blastRadius: 'EDI Translator, Container Timeline',
+        confidence: 91
       },
       timestamp: '14:23 UTC'
     },
@@ -213,13 +213,27 @@ const DutyOfficerDashboard: React.FC = () => {
           'Escalation timer started for SLA tracking'
         ];
         
-        if (incident.service.includes('Container')) {
+        let additionalNotifications: string[] = [];
+        let slackChannel = '#incident-response';
+        
+        if (incident.service.includes('EDI')) {
+          nextSteps = [
+            'Ticket INC-154599 linked and assigned to EDI Integration Team',
+            'Segment validation and patching process initiated',
+            'Partner acknowledgment scheduled after reprocessing',
+            'Monitoring alerts configured for EDI timeline consistency'
+          ];
+          additionalNotifications = ['EDI Service Owner', 'Partner Integration Lead'];
+          slackChannel = '#edi-ops-incidents';
+        } else if (incident.service.includes('Container')) {
           nextSteps = [
             'Ticket ALR-861600 linked and assigned to Container Services Team',
             'PORTNET sync verification scheduled for duplicate purge',
             'Hash validation enhancement deployed to Container Service',
             'Monitoring alerts configured for duplicate event detection'
           ];
+          additionalNotifications = ['Container Service Owner', 'PORTNET Integration Lead'];
+          slackChannel = '#container-ops-incidents';
         }
         
         const escalation = {
@@ -232,11 +246,11 @@ const DutyOfficerDashboard: React.FC = () => {
             'Technical Support Manager', 
             'On-Call Engineer',
             'Service Owner',
-            ...(incident.service.includes('Container') ? ['Container Service Owner', 'PORTNET Integration Lead'] : [])
+            ...additionalNotifications
           ],
           ticketingSystem: 'Jira',
           ticketUrl: `https://jira.psa.com/browse/PROD-${Math.floor(Math.random() * 10000)}`,
-          slackChannel: incident.service.includes('Container') ? '#container-ops-incidents' : '#incident-response',
+          slackChannel: slackChannel,
           runbookUrl: 'https://wiki.psa.com/runbooks/incident-response',
           nextSteps: nextSteps
         };
