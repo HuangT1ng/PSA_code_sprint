@@ -14,7 +14,6 @@ import {
   Target,
   TrendingUp,
   Clock,
-  Cpu,
   Database,
   RefreshCw,
   Trash2,
@@ -129,7 +128,7 @@ const Pathfinder: React.FC = () => {
     setTimeout(() => {
       addThought('Scanned 2,847 past incidents - NO exact match found', 'result');
       addThought('Pattern similarity score: 34% (below threshold)', 'result');
-      addThought('🔍 This is a NOVEL problem - activating exploratory mode', 'hypothesis');
+      addThought('This is a NOVEL problem - activating exploratory mode', 'hypothesis');
       setHistoryMatch(false);
       setCurrentPhase('probing');
       setProgress(20);
@@ -153,30 +152,30 @@ const Pathfinder: React.FC = () => {
     }, 5000);
 
     setTimeout(() => {
-      addThought('Probing EDI Parser... ✓ Parsing completed successfully', 'result');
+      addThought('Probing EDI Parser... Parsing completed successfully', 'result');
       setCausalNodes(prev => prev.map(n => n.id === 'n1' ? { ...n, status: 'clear' } : n));
     }, 6000);
 
     setTimeout(() => {
-      addThought('Probing Message Queue... ✓ Queue operational, no backlogs', 'result');
+      addThought('Probing Message Queue... Queue operational, no backlogs', 'result');
       setCausalNodes(prev => prev.map(n => n.id === 'n2' ? { ...n, status: 'clear' } : n));
     }, 7000);
 
     setTimeout(() => {
-      addThought('Probing ACK Generator... ⚠ Service running but no activity', 'result');
+      addThought('Probing ACK Generator... Service running but no activity', 'result');
       setCausalNodes(prev => prev.map(n => n.id === 'n3' ? { ...n, status: 'suspicious' } : n));
     }, 8000);
 
     setTimeout(() => {
-      addThought('Probing Outbound Gateway... ✓ Connection pool healthy', 'result');
+      addThought('Probing Outbound Gateway... Connection pool healthy', 'result');
       setCausalNodes(prev => prev.map(n => n.id === 'n4' ? { ...n, status: 'clear' } : n));
     }, 9000);
 
     setTimeout(() => {
-      addThought('Probing DB Transaction... 🎯 DEADLOCK DETECTED!', 'result');
+      addThought('Probing DB Transaction... DEADLOCK DETECTED!', 'result');
       addThought('Transaction isolation level: SERIALIZABLE', 'analysis');
       addThought('Lock wait timeout: Message stuck in "processing" state', 'analysis');
-      addThought('💡 Hypothesis: Orphaned DB lock preventing ACK generation', 'hypothesis');
+      addThought('Hypothesis: Orphaned DB lock preventing ACK generation', 'hypothesis');
       setCausalNodes(prev => prev.map(n => n.id === 'n5' ? { ...n, status: 'root_cause' } : n));
       setCurrentPhase('solving');
       setProgress(45);
@@ -202,7 +201,7 @@ const Pathfinder: React.FC = () => {
     setTimeout(() => {
       setCurrentPhase('testing');
       setProgress(60);
-      addThought('🧪 Testing Fix #1: Kill orphaned transaction & reset state', 'action');
+      addThought('Testing Fix #1: Kill orphaned transaction & reset state', 'action');
       setMicroFixes(prev => prev.map(f => f.id === 'fix1' ? { ...f, status: 'testing' } : f));
     }, 15000);
 
@@ -221,9 +220,9 @@ const Pathfinder: React.FC = () => {
     }, 20000);
 
     setTimeout(() => {
-      addThought('✅ Acknowledgment generated and queued for delivery', 'result');
+      addThought('Acknowledgment generated and queued for delivery', 'result');
       addThought('EDI message status: ERROR → ACKNOWLEDGED', 'result');
-      addThought('🎉 FIX SUCCESSFUL! Acknowledgment sent to shipping line', 'result');
+      addThought('FIX SUCCESSFUL! Acknowledgment sent to shipping line', 'result');
       setMicroFixes(prev => {
         const updated = prev.map(f => f.id === 'fix1' ? { ...f, status: 'success' as const } : f);
         setSuccessfulFix(updated[0]);
@@ -234,7 +233,7 @@ const Pathfinder: React.FC = () => {
 
     // Phase 5: Creating playbook (4 seconds)
     setTimeout(() => {
-      addThought('📖 Creating new playbook from successful resolution...', 'action');
+      addThought('Creating new playbook from successful resolution...', 'action');
       addThought('Documenting: symptoms, root cause, solution', 'analysis');
     }, 24000);
 
@@ -390,19 +389,11 @@ const Pathfinder: React.FC = () => {
             >
               <div className="space-y-2 font-mono text-xs">
                 {agentThoughts.map((thought) => {
-                  const icons = {
-                    analysis: <Cpu className="w-3 h-3 text-cyan-400" />,
-                    hypothesis: <Lightbulb className="w-3 h-3 text-yellow-400" />,
-                    action: <Activity className="w-3 h-3 text-emerald-400" />,
-                    result: <CheckCircle className="w-3 h-3 text-emerald-400" />
-                  };
-                  
                   return (
                     <div 
                       key={thought.id}
                       className="flex items-start gap-2 text-white/60 animate-fadeIn"
                     >
-                      {icons[thought.type]}
                       <span className="text-emerald-400">›</span>
                       <span className="flex-1">{thought.text}</span>
                     </div>

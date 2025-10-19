@@ -49,14 +49,15 @@ function App() {
           scanningActive={scanningActive}
         >
           <div className="space-y-8">
-            {/* Customer Tickets at the top */}
-            <CustomerTickets />
-
-            {/* Monitor (Event Timeline) */}
-            <EventTimeline 
-              showServiceMonitors={showServiceMonitors}
-              onToggleServiceMonitors={() => setShowServiceMonitors(!showServiceMonitors)}
-            />
+            {/* Customer Tickets and Monitor side by side */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <CustomerTickets />
+              
+              <EventTimeline 
+                showServiceMonitors={showServiceMonitors}
+                onToggleServiceMonitors={() => setShowServiceMonitors(!showServiceMonitors)}
+              />
+            </div>
 
             {/* Service Monitors Grid - 3 columns x 2 rows */}
             {showServiceMonitors && (

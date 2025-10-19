@@ -153,6 +153,8 @@ const DutyOfficerDashboard: React.FC = () => {
   const [decisionNotes, setDecisionNotes] = useState<{[key: string]: string}>({});
   const [customSolutions, setCustomSolutions] = useState<{[key: string]: string}>({});
   const [showCustomSolution, setShowCustomSolution] = useState<{[key: string]: boolean}>({});
+  const [showEscalation, setShowEscalation] = useState<{[key: string]: boolean}>({});
+  const [escalationData, setEscalationData] = useState<{[key: string]: any}>({});
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -188,6 +190,38 @@ const DutyOfficerDashboard: React.FC = () => {
         ? { ...incident, status: decision }
         : incident
     ));
+    
+    // If approved, generate escalation summary
+    if (decision === 'approved') {
+      const incident = incidents.find(inc => inc.id === incidentId);
+      if (incident) {
+        const escalation = {
+          ticketId: `ESCAL-${Date.now()}`,
+          priority: incident.severity === 'critical' ? 'P1 - Critical' : incident.severity === 'high' ? 'P2 - High' : 'P3 - Medium',
+          assignedTeam: incident.service.includes('EDI') ? 'EDI Integration Team' : incident.service.includes('Vessel') ? 'Vessel Operations Team' : 'Platform Team',
+          estimatedResolution: incident.proposedSolution?.estimatedTime || '30-45 minutes',
+          notificationsSent: [
+            'Product Team Lead',
+            'Technical Support Manager', 
+            'On-Call Engineer',
+            'Service Owner'
+          ],
+          ticketingSystem: 'Jira',
+          ticketUrl: `https://jira.psa.com/browse/PROD-${Math.floor(Math.random() * 10000)}`,
+          slackChannel: '#incident-response',
+          runbookUrl: 'https://wiki.psa.com/runbooks/incident-response',
+          nextSteps: [
+            'Ticket created and assigned to ' + (incident.service.includes('EDI') ? 'EDI Integration Team' : 'Platform Team'),
+            'Automated notifications sent to stakeholders',
+            'Monitoring alerts configured for issue tracking',
+            'Escalation timer started for SLA tracking'
+          ]
+        };
+        
+        setEscalationData(prev => ({ ...prev, [incidentId]: escalation }));
+        setShowEscalation(prev => ({ ...prev, [incidentId]: true }));
+      }
+    }
   };
 
   const toggleCustomSolution = (incidentId: string) => {
@@ -208,19 +242,19 @@ const DutyOfficerDashboard: React.FC = () => {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="relative">
+              <div className="relative">
             <Users className="w-8 h-8 text-white" />
             <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-white">
               <div className="absolute inset-0 rounded-full animate-ping bg-white" />
-            </div>
-          </div>
-          <div>
+                </div>
+              </div>
+              <div>
             <h2 className="text-2xl font-medium text-white tracking-tight">Duty Officer Command Center</h2>
             <p className="text-sm text-white/60">Incident Response & Decision Management</p>
-          </div>
-        </div>
+              </div>
+            </div>
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 rounded-lg">
@@ -300,14 +334,117 @@ const DutyOfficerDashboard: React.FC = () => {
 
               {/* Content */}
               <div className="relative p-6 space-y-4 flex-1 flex flex-col">
+                {/* Show Escalation Summary if approved, otherwise show incident details */}
+                {incident.status === 'approved' && showEscalation[incident.id] && escalationData[incident.id] ? (
+                  /* Escalation Summary - Replaces Card Content */
+                  <div className="flex-1 flex flex-col overflow-hidden">
+                    <div 
+                      className="space-y-4 overflow-y-auto pr-2 flex-1"
+                      style={{
+                        scrollbarWidth: 'thin',
+                        scrollbarColor: 'rgba(255,255,255,0.3) transparent'
+                      }}
+                    >
+                      <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-8 h-8 bg-emerald-500/20 border border-emerald-500/40 rounded-full flex items-center justify-center">
+                            <CheckCircle className="w-4 h-4 text-emerald-400" />
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-semibold text-emerald-400">Escalation Initiated</h3>
+                            <p className="text-xs text-white/60">Auto-generated summary and ticketing workflow</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Escalation Ticket Info */}
+                      <div className="bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-3">
+                        <div className="text-xs text-white/50 mb-1">Escalation Ticket</div>
+                        <div className="text-sm font-semibold text-white">#{escalationData[incident.id].ticketId}</div>
+                      </div>
+                      
+                      {/* Key Details Grid */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-3">
+                          <div className="text-xs text-white/50 mb-1">Priority</div>
+                          <div className="text-xs font-semibold text-white">{escalationData[incident.id].priority}</div>
+                        </div>
+                        <div className="bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-3">
+                          <div className="text-xs text-white/50 mb-1">Est. Resolution</div>
+                          <div className="text-xs font-semibold text-white">{escalationData[incident.id].estimatedResolution}</div>
+                        </div>
+                      </div>
+                      
+                      {/* Assigned Team */}
+                      <div className="bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-3">
+                        <div className="text-xs text-white/50 mb-1">Assigned To</div>
+                        <div className="text-sm font-semibold text-white">{escalationData[incident.id].assignedTeam}</div>
+                      </div>
+                      
+                      {/* Ticketing System */}
+                      <div className="bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-3 space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-white/50">System:</span>
+                          <span className="text-white/80">{escalationData[incident.id].ticketingSystem}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-white/50">Channel:</span>
+                          <span className="text-white/80">{escalationData[incident.id].slackChannel}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Notifications - Show All */}
+                      <div>
+                        <div className="text-xs text-white/50 mb-2">Notifications Sent:</div>
+                        <div className="space-y-1">
+                          {escalationData[incident.id].notificationsSent.map((recipient: string, idx: number) => (
+                            <div key={idx} className="flex items-center gap-2 text-xs">
+                              <CheckCircle className="w-3 h-3 text-emerald-400 flex-shrink-0" />
+                              <span className="text-white/70">{recipient}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Automated Next Steps */}
+                      <div>
+                        <div className="text-xs text-white/50 mb-2">Automated Next Steps:</div>
+                        <div className="space-y-2">
+                          {escalationData[incident.id].nextSteps.map((step: string, idx: number) => (
+                            <div key={idx} className="flex items-start gap-2 text-xs">
+                              <div className="w-5 h-5 bg-emerald-500/20 border border-emerald-500/40 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span className="text-xs font-bold text-emerald-400">{idx + 1}</span>
+                              </div>
+                              <span className="text-white/70 pt-0.5">{step}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* View Details Button - Fixed at bottom */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedIncident(incident.id);
+                      }}
+                      className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm hover:bg-white/20 transition-colors flex-shrink-0"
+                    >
+                      <FileText className="w-4 h-4" />
+                      View Full Details
+                    </button>
+                  </div>
+                ) : (
+                  /* Original Incident Content */
+                  <>
                 {/* Problem Summary - Full Text */}
                 <div className="flex-shrink-0">
-                  <h4 className="text-sm font-semibold text-white/90 mb-2 flex items-center gap-2">
+                      <h4 className="text-sm font-semibold text-white/90 mb-2 flex items-center gap-2">
                     <FileText className="w-4 h-4" />
                     Problem Summary
                   </h4>
-                  <div className="bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-3 min-h-[4.5rem]">
-                    <p className="text-sm text-white/80 leading-relaxed">
+                      <div className="bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-3 min-h-[4.5rem]">
+                        <p className="text-sm text-white/80 leading-relaxed">
                       {incident.problem}
                     </p>
                   </div>
@@ -315,7 +452,7 @@ const DutyOfficerDashboard: React.FC = () => {
 
                 {/* Proposed Solution */}
                 {incident.proposedSolution && (
-                  <div className="bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-4 flex-shrink-0 min-h-[8rem]">
+                      <div className="bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-4 flex-shrink-0 min-h-[8rem]">
                     <h4 className="text-sm font-semibold text-emerald-400 mb-2 flex items-center gap-2">
                       <Zap className="w-4 h-4" />
                       AI Proposed Solution
@@ -365,7 +502,7 @@ const DutyOfficerDashboard: React.FC = () => {
                       {showCustomSolution[incident.id] ? 'Hide Custom Solution' : 'Provide Custom Solution'}
                     </button>
 
-                            {showCustomSolution[incident.id] && (
+                    {showCustomSolution[incident.id] && (
                               <div className="bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-4">
                         <h4 className="text-sm font-semibold text-amber-400 mb-2 flex items-center gap-2">
                           <Users className="w-4 h-4" />
@@ -394,7 +531,7 @@ const DutyOfficerDashboard: React.FC = () => {
                     <div className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(incident.status)}`}>
                       {incident.status.toUpperCase()}
                     </div>
-                    <div className="text-xs text-white/50">{incident.timestamp}</div>
+                        <div className="text-xs text-white/50">{incident.timestamp}</div>
                   </div>
 
                   {/* Action Buttons */}
@@ -423,6 +560,8 @@ const DutyOfficerDashboard: React.FC = () => {
                     </div>
                   )}
                 </div>
+                  </>
+                )}
               </div>
             </div>
           ))}
@@ -496,8 +635,8 @@ const DutyOfficerDashboard: React.FC = () => {
                       {/* Key Considerations */}
                       <div>
                         <h4 className="text-md font-semibold text-white mb-3">Key Considerations for Duty Officer:</h4>
-                                <div className="space-y-3">
-                                  {incident.keyConsiderations.map((consideration, index) => (
+                        <div className="space-y-3">
+                          {incident.keyConsiderations.map((consideration, index) => (
                                     <div key={index} className="flex items-start gap-3 p-3 bg-[#6b5d4f]/30 border border-white/10 rounded-lg">
                               {getConsiderationIcon(consideration.type)}
                               <span className="text-white/80">{consideration.text}</span>
@@ -558,10 +697,10 @@ const DutyOfficerDashboard: React.FC = () => {
                       {/* Custom Solution Input */}
                       {incident.status === 'pending' && (
                         <div>
-                            <h4 className="text-md font-semibold text-amber-400 mb-3 flex items-center gap-2">
-                              <Users className="w-5 h-5" />
-                              Custom Solution (Optional)
-                            </h4>
+                          <h4 className="text-md font-semibold text-amber-400 mb-3 flex items-center gap-2">
+                            <Users className="w-5 h-5" />
+                            Custom Solution (Optional)
+                          </h4>
                                   <div className="bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-4">
                             <textarea
                               value={customSolutions[incident.id] || ''}
@@ -628,6 +767,110 @@ const DutyOfficerDashboard: React.FC = () => {
                               className="px-6 py-3 bg-white/5 border border-white/10 rounded-lg text-white/70 hover:bg-white/10 transition-colors"
                             >
                               Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Escalation Summary - Full View */}
+                      {incident.status === 'approved' && showEscalation[incident.id] && escalationData[incident.id] && (
+                        <div className="space-y-6 pt-4 border-t border-white/10">
+                          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-10 h-10 bg-emerald-500/20 border border-emerald-500/40 rounded-full flex items-center justify-center">
+                                <CheckCircle className="w-5 h-5 text-emerald-400" />
+                              </div>
+                              <div>
+                                <h3 className="text-lg font-semibold text-emerald-400">Escalation Initiated</h3>
+                                <p className="text-xs text-white/60">Auto-generated summary and ticketing workflow activated</p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Escalation Details */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-4">
+                              <div className="text-sm text-white/50 mb-1">Escalation Ticket</div>
+                              <div className="text-lg font-semibold text-white">#{escalationData[incident.id].ticketId}</div>
+                            </div>
+                            <div className="bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-4">
+                              <div className="text-sm text-white/50 mb-1">Priority Level</div>
+                              <div className="text-lg font-semibold text-white">{escalationData[incident.id].priority}</div>
+                            </div>
+                            <div className="bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-4">
+                              <div className="text-sm text-white/50 mb-1">Assigned Team</div>
+                              <div className="text-lg font-semibold text-white">{escalationData[incident.id].assignedTeam}</div>
+                            </div>
+                            <div className="bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-4">
+                              <div className="text-sm text-white/50 mb-1">Est. Resolution</div>
+                              <div className="text-lg font-semibold text-white">{escalationData[incident.id].estimatedResolution}</div>
+                            </div>
+                          </div>
+                          
+                          {/* Ticketing Workflow Integration */}
+                          <div>
+                            <h4 className="text-md font-semibold text-white mb-3 flex items-center gap-2">
+                              <Send className="w-5 h-5" />
+                              Ticketing Workflow Integration
+                            </h4>
+                            <div className="bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-4 space-y-3">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-white/70">System:</span>
+                                <span className="text-sm font-medium text-white">{escalationData[incident.id].ticketingSystem}</span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-white/70">Ticket URL:</span>
+                                <a href={escalationData[incident.id].ticketUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-400 hover:text-blue-300 underline">
+                                  View in {escalationData[incident.id].ticketingSystem}
+                                </a>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-white/70">Slack Channel:</span>
+                                <span className="text-sm font-medium text-white">{escalationData[incident.id].slackChannel}</span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-white/70">Runbook:</span>
+                                <a href={escalationData[incident.id].runbookUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-400 hover:text-blue-300 underline">
+                                  View Runbook
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Notifications Sent */}
+                          <div>
+                            <h4 className="text-md font-semibold text-white mb-3">Notifications Sent To:</h4>
+                            <div className="grid grid-cols-2 gap-2">
+                              {escalationData[incident.id].notificationsSent.map((recipient: string, idx: number) => (
+                                <div key={idx} className="flex items-center gap-2 bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-3">
+                                  <CheckCircle className="w-4 h-4 text-emerald-400" />
+                                  <span className="text-sm text-white/80">{recipient}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          {/* Next Steps */}
+                          <div>
+                            <h4 className="text-md font-semibold text-white mb-3">Automated Next Steps:</h4>
+                            <div className="space-y-2">
+                              {escalationData[incident.id].nextSteps.map((step: string, idx: number) => (
+                                <div key={idx} className="flex items-start gap-3 bg-[#6b5d4f]/30 border border-white/10 rounded-lg p-3">
+                                  <div className="w-6 h-6 bg-emerald-500/20 border border-emerald-500/40 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <span className="text-xs font-bold text-emerald-400">{idx + 1}</span>
+                                  </div>
+                                  <span className="text-sm text-white/80">{step}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <div className="flex justify-center pt-4">
+                            <button
+                              onClick={() => setSelectedIncident(null)}
+                              className="px-6 py-3 bg-white/10 border border-white/20 rounded-lg text-white hover:bg-white/20 transition-colors font-medium"
+                            >
+                              Close Details
                             </button>
                           </div>
                         </div>

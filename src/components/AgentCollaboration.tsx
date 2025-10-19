@@ -4,10 +4,11 @@ import {
   CheckCircle, 
   Activity,
   MessageSquare,
-  Play,
   RotateCcw,
   Sparkles,
-  CheckSquare
+  CheckSquare,
+  AlertTriangle,
+  XCircle
 } from 'lucide-react';
 
 interface AgentMessage {
@@ -76,6 +77,46 @@ const TypewriterText: React.FC<{
     </pre>
   );
 };
+
+// Define incidents from Sentinel monitor - Only ERROR and WARN events
+const sentinelIncidents = [
+  {
+    id: 'inc-1',
+    time: 'Oct 4, 12:25',
+    level: 'ERROR' as const,
+    service: 'EDI Service',
+    action: 'IFTMIN',
+    entity: 'REF-IFT-0007',
+    message: 'EDI message processing failed - Segment missing',
+  },
+  {
+    id: 'inc-2',
+    time: 'Oct 8, 09:14',
+    level: 'ERROR' as const,
+    service: 'Vessel Advice',
+    action: 'Create Advice',
+    entity: 'MV Lion City 07',
+    message: 'System vessel name already in use by active advice',
+  },
+  {
+    id: 'inc-3',
+    time: 'Oct 9, 08:30',
+    level: 'WARN' as const,
+    service: 'Vessel Registry',
+    action: 'Flag Update',
+    entity: 'IMO: 9300007',
+    message: 'Vessel flag updated with high frequency warning',
+  },
+  {
+    id: 'inc-4',
+    time: 'Oct 9, 09:20',
+    level: 'WARN' as const,
+    service: 'Container Service',
+    action: 'Duplicate Snapshot',
+    entity: 'TEMU0000045',
+    message: 'Duplicate snapshot event detected within time window',
+  },
+];
 
 // Define messages outside component to avoid recreation
 const agentMessages: AgentMessage[] = [
@@ -374,6 +415,8 @@ const AgentCollaboration: React.FC<AgentCollaborationProps> = () => {
   const [showFinalSolution, setShowFinalSolution] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
   const [currentAgentTodos, setCurrentAgentTodos] = useState<'none' | 'planner' | 'strategist'>('none');
+  const [selectedIncident, setSelectedIncident] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const currentMessageIndex = useRef(0);
 
@@ -492,49 +535,57 @@ Planner & Strategist Joint Resolution:
     }
   }, [completedSteps]);
 
-  const startCollaboration = () => {
-    console.log('Starting collaboration with', agentMessages.length, 'messages');
-    setIsRunning(true);
-    setCurrentRound(0);
-    setMessages([]);
-    setFinalSolution(null);
-    setShowFinalSolution(false);
-    setCompletedSteps(new Set());
-    setCurrentAgentTodos('planner'); // Show Planner todos immediately
-    setCurrentRound(1); // Start with Round 1
-    currentMessageIndex.current = 0;
+  const startCollaboration = (incidentId: string) => {
+    console.log('Starting collaboration for incident:', incidentId);
+    setSelectedIncident(incidentId);
+    setIsLoading(true);
     
-    // Show todos first, then start the first message after a delay
+    // Show loading for 2 seconds
     setTimeout(() => {
-      try {
-        // Start with the first message
-        const firstMessage = agentMessages[0];
-        if (firstMessage) {
-          setMessages([{ ...firstMessage, status: 'active', isTyping: true }]);
-          setCurrentRound(firstMessage.round);
-          
-          // Set thinking states for first message
-          if (firstMessage.agent === 'planner' && firstMessage.type === 'thinking') {
-            setPlannerThinking(true);
-          } else if (firstMessage.agent === 'strategist' && firstMessage.type === 'thinking') {
-            setStrategistThinking(true);
+      setIsLoading(false);
+      setIsRunning(true);
+      setCurrentRound(0);
+      setMessages([]);
+      setFinalSolution(null);
+      setShowFinalSolution(false);
+      setCompletedSteps(new Set());
+      setCurrentAgentTodos('planner'); // Show Planner todos immediately
+      setCurrentRound(1); // Start with Round 1
+      currentMessageIndex.current = 0;
+      
+      // Show todos first, then start the first message after a delay
+      setTimeout(() => {
+        try {
+          // Start with the first message
+          const firstMessage = agentMessages[0];
+          if (firstMessage) {
+            setMessages([{ ...firstMessage, status: 'active', isTyping: true }]);
+            setCurrentRound(firstMessage.round);
+            
+            // Set thinking states for first message
+            if (firstMessage.agent === 'planner' && firstMessage.type === 'thinking') {
+              setPlannerThinking(true);
+            } else if (firstMessage.agent === 'strategist' && firstMessage.type === 'thinking') {
+              setStrategistThinking(true);
+            }
+            
+            // Clear thinking states
+            setTimeout(() => {
+              setPlannerThinking(false);
+              setStrategistThinking(false);
+            }, 1500);
           }
-          
-          // Clear thinking states
-          setTimeout(() => {
-            setPlannerThinking(false);
-            setStrategistThinking(false);
-          }, 1500);
+        } catch (error) {
+          console.error('Error starting collaboration:', error);
+          setIsRunning(false);
         }
-      } catch (error) {
-        console.error('Error starting collaboration:', error);
-        setIsRunning(false);
-      }
-    }, 1500); // 1.5 second delay to show todos first
+      }, 1500); // 1.5 second delay to show todos first
+    }, 2000); // 2 second loading period
   };
 
   const resetCollaboration = () => {
     setIsRunning(false);
+    setIsLoading(false);
     setCurrentRound(0);
     setMessages([]);
     setPlannerThinking(false);
@@ -544,6 +595,7 @@ Planner & Strategist Joint Resolution:
     setCompletedSteps(new Set());
     setCurrentAgentTodos('none'); // Hide all todos
     setCurrentRound(1); // Reset to Round 1
+    setSelectedIncident(null); // Clear selected incident
   };
 
 
@@ -582,33 +634,103 @@ Planner & Strategist Joint Resolution:
             </div>
           </div>
         </div>
-        {/* Control Panel */}
-        <div className="mb-8 flex justify-center">
-          <div className="flex items-center gap-4 bg-[#6b5d4f]/20 backdrop-blur-sm border border-white/10 rounded-xl p-4">
-            <button
-              onClick={startCollaboration}
-              disabled={isRunning}
-              className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-                isRunning
-                  ? 'bg-white/5 text-white/40 cursor-not-allowed'
-                  : 'bg-white/10 border border-white/20 text-white hover:bg-white/20'
-              }`}
-            >
-              <Play className="w-5 h-5" />
-              Start Collaboration
-            </button>
-            <button
-              onClick={resetCollaboration}
-              className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-lg text-white/80 hover:bg-white/10 transition-colors"
-            >
-              <RotateCcw className="w-5 h-5" />
-              Reset
-            </button>
+        {/* Incident Selection Panel - Show only when no incident is selected */}
+        {!selectedIncident && (
+          <div className="mb-8">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-white">Select Incident to Resolve</h3>
+            </div>
+            
+            <div className="space-y-4">
+              {sentinelIncidents.map((incident) => {
+                const getIcon = () => {
+                  if (incident.level === 'ERROR') return <XCircle className="w-4 h-4 text-red-400" />;
+                  if (incident.level === 'WARN') return <AlertTriangle className="w-4 h-4 text-yellow-400" />;
+                  return <CheckCircle className="w-4 h-4 text-cyan-400" />;
+                };
+                
+                const getColor = () => {
+                  if (incident.level === 'ERROR') return 'text-red-400';
+                  if (incident.level === 'WARN') return 'text-yellow-400';
+                  return 'text-cyan-400';
+                };
+                
+                return (
+                  <button
+                    key={incident.id}
+                    onClick={() => startCollaboration(incident.id)}
+                    className="relative w-full p-4 rounded-xl border transition-all duration-300 text-left bg-[#6b5d4f]/20 border-white/10 hover:bg-[#6b5d4f]/30 hover:border-white/20 hover:scale-[1.02] cursor-pointer"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent pointer-events-none rounded-xl" />
+                    
+                    <div className="flex items-start gap-4">
+                      {/* Level Badge */}
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {getIcon()}
+                        <span className={`text-xs font-bold ${getColor()}`}>
+                          {incident.level}
+                        </span>
+                      </div>
+                      
+                      {/* Service & Time */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="text-sm font-semibold text-white">
+                            {incident.service}
+                          </div>
+                          <div className="text-xs text-white/50">
+                            {incident.time}
+                          </div>
+                        </div>
+                        
+                        {/* Entity */}
+                        <div className="text-xs text-white/60 font-mono mb-2">
+                          {incident.entity}
+                        </div>
+                        
+                        {/* Message */}
+                        <div className="text-sm text-white/70">
+                          {incident.message}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Agent Status */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        {/* Loading State - Show during 2 second loading period */}
+        {selectedIncident && isLoading && (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <div className="relative w-20 h-20 mx-auto mb-6">
+                <div className="absolute inset-0 border-4 border-white/10 rounded-full"></div>
+                <div className="absolute inset-0 border-4 border-transparent border-t-white rounded-full animate-spin"></div>
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-2">Initializing AI Collaboration</h3>
+              <p className="text-sm text-white/60">Preparing Planner and Strategist agents...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Agent Collaboration Section - Show only when incident is selected and loading is complete */}
+        {selectedIncident && !isLoading && (
+          <>
+            {/* Reset Button */}
+            <div className="mb-6 flex justify-end">
+              <button
+                onClick={resetCollaboration}
+                className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white/80 hover:bg-white/10 transition-colors text-sm"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Stop
+              </button>
+            </div>
+
+            {/* Agent Status */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {/* Planner Status */}
           <div className="bg-[#6b5d4f]/20 backdrop-blur-sm border border-white/10 rounded-xl p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -1082,6 +1204,8 @@ Planner & Strategist Joint Resolution:
               </div>
             </div>
           </div>
+        )}
+          </>
         )}
       </div>
     );

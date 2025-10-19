@@ -177,7 +177,7 @@ const CustomerTickets: React.FC = () => {
 
       <div 
         ref={scrollRef}
-        className="relative h-[320px] overflow-y-auto px-8 pt-6 pb-4"
+        className="relative h-[600px] overflow-y-auto px-8 pt-6 pb-4"
         style={{
           scrollbarWidth: 'thin',
           scrollbarColor: 'rgba(255,255,255,0.3) transparent'
