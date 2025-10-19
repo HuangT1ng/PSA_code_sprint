@@ -52,14 +52,14 @@ interface AgentThought {
 const novelIssues: NovelIssue[] = [
   {
     id: 'novel1',
-    name: 'Duplicate Container CMAU0000020 in PORTNET',
-    tag: 'ALR-861600',
+    name: 'EDI Message Processing Failed - Segment Missing',
+    tag: 'INC-154599',
     symptoms: [
-      'Customer seeing 2 identical container records in PORTNET',
-      'Both records show status=DISCHARGED',
-      'Events generated within 45 second window',
-      'Deduplication logic failed to suppress duplicate',
-      'Correlation ID corr-cont-0001 on both events'
+      'EDI message REF-IFT-0007 failed to process',
+      'Missing segment error (EDI_ERR_1)',
+      'Translator stuck in error state for > 10 minutes',
+      'Container timeline events not updating',
+      'No similar patterns in historical data'
     ]
   },
   {
@@ -137,45 +137,45 @@ const Pathfinder: React.FC = () => {
     // Phase 2: Probing causal graph (8 seconds)
     setTimeout(() => {
       addThought('Building causal dependency graph...', 'action');
-      addThought('Analyzing container event flow and deduplication chain', 'analysis');
+      addThought('Analyzing EDI message processing flow and translator chain', 'analysis');
       
       // Add causal nodes progressively
       const nodes: CausalNode[] = [
-        { id: 'n1', name: 'Container Service', status: 'checking', details: 'Container snapshot engine' },
-        { id: 'n2', name: 'Message Queue', status: 'checking', details: 'RabbitMQ broker' },
-        { id: 'n3', name: 'Deduplication Filter', status: 'checking', details: 'Event dedup logic' },
-        { id: 'n4', name: 'PORTNET Gateway', status: 'checking', details: 'Customer portal sync' },
-        { id: 'n5', name: 'Idempotency Check', status: 'checking', details: 'Hash validation' },
+        { id: 'n1', name: 'EDI Translator', status: 'checking', details: 'Message parser' },
+        { id: 'n2', name: 'Segment Validator', status: 'checking', details: 'Schema validation' },
+        { id: 'n3', name: 'Message Queue', status: 'checking', details: 'RabbitMQ broker' },
+        { id: 'n4', name: 'Container Timeline', status: 'checking', details: 'Event processor' },
+        { id: 'n5', name: 'Retry Logic', status: 'checking', details: 'Auto-retry handler' },
       ];
       
       setCausalNodes(nodes);
     }, 5000);
 
     setTimeout(() => {
-      addThought('Probing Container Service... Snapshot generation working', 'result');
-      setCausalNodes(prev => prev.map(n => n.id === 'n1' ? { ...n, status: 'clear' } : n));
+      addThought('Probing EDI Translator... Processing halted at segment parser', 'result');
+      setCausalNodes(prev => prev.map(n => n.id === 'n1' ? { ...n, status: 'suspicious' } : n));
     }, 6000);
 
     setTimeout(() => {
-      addThought('Probing Message Queue... Two events detected within 45s window', 'result');
-      setCausalNodes(prev => prev.map(n => n.id === 'n2' ? { ...n, status: 'suspicious' } : n));
+      addThought('Probing Segment Validator... MISSING MANDATORY SEGMENT DETECTED!', 'result');
+      setCausalNodes(prev => prev.map(n => n.id === 'n2' ? { ...n, status: 'root_cause' } : n));
     }, 7000);
 
     setTimeout(() => {
-      addThought('Probing Deduplication Filter... 60s window configured correctly', 'result');
-      setCausalNodes(prev => prev.map(n => n.id === 'n3' ? { ...n, status: 'clear' } : n));
+      addThought('Probing Message Queue... Message stuck in error state', 'result');
+      setCausalNodes(prev => prev.map(n => n.id === 'n3' ? { ...n, status: 'suspicious' } : n));
     }, 8000);
 
     setTimeout(() => {
-      addThought('Probing PORTNET Gateway... Both events consumed successfully', 'result');
+      addThought('Probing Container Timeline... Waiting for EDI data', 'result');
       setCausalNodes(prev => prev.map(n => n.id === 'n4' ? { ...n, status: 'clear' } : n));
     }, 9000);
 
     setTimeout(() => {
-      addThought('Probing Idempotency Check... VALIDATION BYPASS DETECTED!', 'result');
-      addThought('Correlation ID corr-cont-0001 on both events', 'analysis');
-      addThought('Message content hash not being validated properly', 'analysis');
-      addThought('Hypothesis: Idempotency key check failing for identical payloads', 'hypothesis');
+      addThought('Probing Retry Logic... Retry mechanism DISABLED for this error type!', 'result');
+      addThought('Message REF-IFT-0007 contains incomplete EDI segment', 'analysis');
+      addThought('Validator rejects message but no retry triggered', 'analysis');
+      addThought('Hypothesis: System needs manual recovery or partner resend', 'hypothesis');
       setCausalNodes(prev => prev.map(n => n.id === 'n5' ? { ...n, status: 'root_cause' } : n));
       setCurrentPhase('solving');
       setProgress(45);
@@ -186,43 +186,43 @@ const Pathfinder: React.FC = () => {
       addThought('Generating safe micro-fix strategies...', 'action');
       
       const fixes: MicroFix[] = [
-        { id: 'fix1', action: 'Purge duplicate event from PORTNET and enable strict hash validation', type: 'flush', risk: 'low', status: 'pending' },
-        { id: 'fix2', action: 'Adjust deduplication window to 90 seconds with stricter rules', type: 'config', risk: 'medium', status: 'pending' },
-        { id: 'fix3', action: 'Implement content-based idempotency key generation', type: 'config', risk: 'low', status: 'pending' },
-        { id: 'fix4', action: 'Restart Container Service with enhanced validation', type: 'restart', risk: 'medium', status: 'pending' },
+        { id: 'fix1', action: 'Validate and patch missing segment internally, then reprocess message', type: 'config', risk: 'low', status: 'pending' },
+        { id: 'fix2', action: 'Request partner to resend corrected EDI message', type: 'flush', risk: 'medium', status: 'pending' },
+        { id: 'fix3', action: 'Enable auto-retry with segment tolerance mode', type: 'config', risk: 'medium', status: 'pending' },
+        { id: 'fix4', action: 'Restart EDI Translator with relaxed validation', type: 'restart', risk: 'high', status: 'pending' },
       ];
       
       setMicroFixes(fixes);
       addThought('Generated 4 potential fix strategies', 'result');
-      addThought('Selecting lowest-risk option: Purge duplicate and enable validation', 'hypothesis');
+      addThought('Selecting lowest-risk option: Validate and patch segment internally', 'hypothesis');
     }, 13000);
 
     // Phase 4: Testing fixes (12 seconds)
     setTimeout(() => {
       setCurrentPhase('testing');
       setProgress(60);
-      addThought('Testing Fix #1: Purge duplicate & enable validation', 'action');
+      addThought('Testing Fix #1: Validate and patch missing segment', 'action');
       setMicroFixes(prev => prev.map(f => f.id === 'fix1' ? { ...f, status: 'testing' } : f));
     }, 15000);
 
     setTimeout(() => {
-      addThought('Identifying duplicate record: CMAU0000020 in PORTNET...', 'action');
+      addThought('Analyzing EDI message REF-IFT-0007 structure...', 'action');
     }, 16000);
 
     setTimeout(() => {
-      addThought('Duplicate record purged successfully', 'result');
-      addThought('Enabling strict content hash validation in deduplication filter...', 'action');
+      addThought('Missing segment identified: LOC (location details)', 'result');
+      addThought('Patching segment with default values from container manifest...', 'action');
     }, 18000);
 
     setTimeout(() => {
-      addThought('Validation rules updated', 'result');
-      addThought('Testing with new container event to verify deduplication...', 'action');
+      addThought('Segment patch applied successfully', 'result');
+      addThought('Reprocessing EDI message through translator...', 'action');
     }, 20000);
 
     setTimeout(() => {
-      addThought('Duplicate event correctly suppressed', 'result');
-      addThought('Container CMAU0000020: PORTNET shows single record', 'result');
-      addThought('FIX SUCCESSFUL! Deduplication logic working correctly', 'result');
+      addThought('Message processed successfully', 'result');
+      addThought('Container timeline updated for REF-IFT-0007', 'result');
+      addThought('FIX SUCCESSFUL! EDI processing restored', 'result');
       setMicroFixes(prev => {
         const updated = prev.map(f => f.id === 'fix1' ? { ...f, status: 'success' as const } : f);
         setSuccessfulFix(updated[0]);
@@ -238,7 +238,7 @@ const Pathfinder: React.FC = () => {
     }, 24000);
 
     setTimeout(() => {
-      addThought('Playbook created: "Container Event Deduplication Recovery"', 'result');
+      addThought('Playbook created: "EDI Missing Segment Recovery"', 'result');
       addThought('Future similar issues can now use this playbook', 'result');
       setPlaybookCreated(true);
       setCurrentPhase('complete');
@@ -529,12 +529,12 @@ const Pathfinder: React.FC = () => {
               <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-lg p-4 space-y-3">
                 <div>
                   <span className="text-xs text-white/60">Playbook Name:</span>
-                  <p className="text-sm font-semibold text-emerald-400 mt-1">Container Event Deduplication Recovery</p>
+                  <p className="text-sm font-semibold text-emerald-400 mt-1">EDI Missing Segment Recovery</p>
                 </div>
                 
                 <div>
                   <span className="text-xs text-white/60">Root Cause:</span>
-                  <p className="text-sm text-white/80 mt-1">Idempotency key validation bypass causing duplicate container CMAU0000020 events to reach PORTNET within 45s window</p>
+                  <p className="text-sm text-white/80 mt-1">Missing mandatory LOC segment in EDI message REF-IFT-0007, causing validator rejection with no auto-retry mechanism enabled</p>
                 </div>
                 
                 <div>

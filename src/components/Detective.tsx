@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, Brain, FileSearch, Database, BookOpen, Zap, CheckCircle, AlertCircle, TrendingUp, Clock, Sparkles, Activity, Eye } from 'lucide-react';
+import { Search, Brain, FileSearch, Database, BookOpen, Zap, CheckCircle, AlertCircle, TrendingUp, Clock, Sparkles, Activity, Eye, Navigation } from 'lucide-react';
 import KnowledgeGraph from './KnowledgeGraph';
 
 interface Evidence {
@@ -30,8 +30,8 @@ interface SearchActivity {
 // Sample issues to analyze - moved outside component to prevent recreating
 const sampleIssues = [
   { id: 'issue1', name: 'Container Snapshot Duplicate - CMAU0000020', tag: 'ALR-861600' },
-  { id: 'issue2', name: 'Duplicate Vessel Name - MV Lion City 07', tag: 'ALR-861631' },
-  { id: 'issue3', name: 'EDI Message Processing Failed - Segment Missing', tag: 'INC-154599' },
+  { id: 'issue2', name: 'EDI Message Processing Failed - Segment Missing', tag: 'INC-154599' },
+  { id: 'issue3', name: 'Duplicate Vessel Name - MV Lion City 07', tag: 'ALR-861631' },
 ];
 
 // Mock root causes database - moved outside component to prevent recreating
@@ -77,38 +77,6 @@ const mockRootCauses: RootCause[] = [
     },
     {
       id: 'rc2',
-      title: 'Active Vessel Advice Not Closed Before Creating New Advice',
-      confidence: 89,
-      description: 'System prevents duplicate vessel names when an active vessel advice exists. The previous vessel advice for "MV Lion City 07" was not properly closed after the vessel departed.',
-      evidence: [
-        {
-          id: 'e4',
-          source: 'logs',
-          timestamp: '2025-10-08T09:14:12Z',
-          content: 'VESSEL_ERR_4: System vessel name already in use by active advice',
-          relevance: 95
-        },
-        {
-          id: 'e5',
-          source: 'cases',
-          timestamp: '2025-09-28',
-          content: 'Case ALR-859200: Similar issue resolved by closing stale vessel advice',
-          relevance: 88
-        },
-        {
-          id: 'e6',
-          source: 'kb',
-          timestamp: '2024-11-20',
-          content: 'KB-3102: Vessel names must be unique across active advices to prevent scheduling conflicts',
-          relevance: 82
-        }
-      ],
-      affectedServices: ['Vessel Advice Service', 'Berth Application'],
-      impactAnalysis: 'MEDIUM - Preventing new vessel advice creation for incoming vessel. Manual workaround possible but requires coordination with Port Operations team.',
-      technicalDetails: 'Database constraint enforces unique system_vessel_name across records with status != "CLOSED". Previous advice (ID: 1000010950) still has status "ACTIVE" despite vessel departure 8 hours ago. Likely missed departure event or async closure process failure.'
-    },
-    {
-      id: 'rc3',
       title: 'Race Condition in Container Snapshot Creation',
       confidence: 76,
       description: 'Multiple concurrent requests attempting to create snapshots for the same container within a short time window, causing duplicate detection warnings.',
@@ -138,16 +106,53 @@ const mockRootCauses: RootCause[] = [
       affectedServices: ['Container Service', 'API Event Service'],
       impactAnalysis: 'LOW - System design prevented data corruption. No functional impact. Warning logs may cause noise in monitoring systems.',
       technicalDetails: 'Two concurrent API calls (17ms apart) attempted to create snapshot for same container. First succeeded (09:19:58.123Z), second detected existing record via unique constraint on (container_id, created_at) and returned 409 Conflict. Optimistic locking working as designed.'
+    },
+    {
+      id: 'rc3',
+      title: 'Active Vessel Advice Not Closed Before Creating New Advice',
+      confidence: 89,
+      description: 'System prevents duplicate vessel names when an active vessel advice exists. The previous vessel advice for "MV Lion City 07" was not properly closed after the vessel departed.',
+      evidence: [
+        {
+          id: 'e4',
+          source: 'logs',
+          timestamp: '2025-10-08T09:14:12Z',
+          content: 'VESSEL_ERR_4: System vessel name already in use by active advice',
+          relevance: 95
+        },
+        {
+          id: 'e5',
+          source: 'cases',
+          timestamp: '2025-09-28',
+          content: 'Case ALR-859200: Similar issue resolved by closing stale vessel advice',
+          relevance: 88
+        },
+        {
+          id: 'e6',
+          source: 'kb',
+          timestamp: '2024-11-20',
+          content: 'KB-3102: Vessel names must be unique across active advices to prevent scheduling conflicts',
+          relevance: 82
+        }
+      ],
+      affectedServices: ['Vessel Advice Service', 'Berth Application'],
+      impactAnalysis: 'MEDIUM - Preventing new vessel advice creation for incoming vessel. Manual workaround possible but requires coordination with Port Operations team.',
+      technicalDetails: 'Database constraint enforces unique system_vessel_name across records with status != "CLOSED". Previous advice (ID: 1000010950) still has status "ACTIVE" despite vessel departure 8 hours ago. Likely missed departure event or async closure process failure.'
     }
 ];
 
-const Detective: React.FC = () => {
+interface DetectiveProps {
+  onNavigateToPathfinder?: () => void;
+}
+
+const Detective: React.FC<DetectiveProps> = ({ onNavigateToPathfinder }) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [_analysisProgress, setAnalysisProgress] = useState(0);
   const [currentPhase, setCurrentPhase] = useState<'idle' | 'scanning' | 'analyzing' | 'complete'>('idle');
   const [_searchedLogs, setSearchedLogs] = useState(0);
   const [_searchedKB, setSearchedKB] = useState(0);
   const [_searchedCases, setSearchedCases] = useState(0);
+  const [matchScore, setMatchScore] = useState<number | null>(null);
   const [_rootCauses, setRootCauses] = useState<RootCause[]>([]);
   const [selectedCause, setSelectedCause] = useState<RootCause | null>(null);
   const [_selectedIssue, setSelectedIssue] = useState<string>('');
@@ -188,6 +193,7 @@ const Detective: React.FC = () => {
     setSearchedLogs(0);
     setSearchedKB(0);
     setSearchedCases(0);
+    setMatchScore(null);
     setRootCauses([]);
     setSelectedCause(null);
     setSearchActivities([]);
@@ -226,8 +232,26 @@ const Detective: React.FC = () => {
         if (activityIndex === 2) {
           // Start showing at "Accessing knowledge base..."
           setShowKnowledgeGraph(true);
-        } else if (activityIndex > 4) {
+        } else if (activityIndex === 5) {
           // Hide after 3 seconds (activities 2, 3, 4)
+          setShowKnowledgeGraph(false);
+          
+          // Calculate and show match score after knowledge graph
+          const scores = [78, 34, 61]; // Different scores for each incident: Container (78%), EDI (34%), Vessel (61%)
+          const score = scores[issueIndex % scores.length];
+          setMatchScore(score);
+          
+          // If novel issue (score < 40), stop activities here
+          if (score < 40) {
+            if (activityIntervalRef.current) {
+              clearInterval(activityIntervalRef.current);
+              activityIntervalRef.current = null;
+            }
+            setCurrentActivity('');
+            return;
+          }
+        } else if (activityIndex > 5) {
+          // Hide knowledge graph for later activities
           setShowKnowledgeGraph(false);
         }
         
@@ -431,11 +455,62 @@ const Detective: React.FC = () => {
             </div>
           )}
 
+          {/* Match Score Display - Show after knowledge graph */}
+          {matchScore !== null && (
+            <div className="mt-6 animate-fadeIn">
+              <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      matchScore >= 70 ? 'bg-emerald-500/20 border border-emerald-500/40' :
+                      matchScore >= 40 ? 'bg-amber-500/20 border border-amber-500/40' :
+                      'bg-red-500/20 border border-red-500/40'
+                    }`}>
+                      <TrendingUp className={`w-5 h-5 ${
+                        matchScore >= 70 ? 'text-emerald-400' :
+                        matchScore >= 40 ? 'text-amber-400' :
+                        'text-red-400'
+                      }`} />
+                    </div>
+                    <div>
+                      <div className="text-xs text-white/50">Match Score with Past Cases</div>
+                      <div className={`text-2xl font-bold ${
+                        matchScore >= 70 ? 'text-emerald-400' :
+                        matchScore >= 40 ? 'text-amber-400' :
+                        'text-red-400'
+                      }`}>
+                        {matchScore}%
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <div className="text-xs text-white/40">
+                        {matchScore >= 70 ? 'High similarity' :
+                         matchScore >= 40 ? 'Moderate similarity' :
+                         'Low similarity - Novel issue'}
+                      </div>
+                    </div>
+                    {matchScore < 40 && onNavigateToPathfinder && (
+                      <button
+                        onClick={onNavigateToPathfinder}
+                        className="flex items-center gap-2 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white hover:bg-white/20 transition-colors text-sm"
+                      >
+                        <Navigation className="w-4 h-4" />
+                        Go to PathFinder
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
         </div>
       )}
 
-      {/* Root Cause Results */}
-      {selectedCause && currentPhase === 'complete' && (
+      {/* Root Cause Results - Only show for non-novel issues (match score >= 40%) */}
+      {selectedCause && currentPhase === 'complete' && matchScore !== null && matchScore >= 40 && (
         <div className="bg-[#6b5d4f]/20 backdrop-blur-sm border border-white/10 rounded-xl p-6 space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-white">Root Cause Analysis</h3>

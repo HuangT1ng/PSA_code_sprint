@@ -9,6 +9,7 @@ interface TabPanelProps {
   detectiveContent?: React.ReactNode;
   pathfinderContent?: React.ReactNode;
   scanningActive?: boolean;
+  onTabChange?: (tab: 'main' | 'knowledge' | 'detective' | 'pathfinder' | 'collab' | 'dashboard') => void;
 }
 
 const TabPanel: React.FC<TabPanelProps> = ({ 
@@ -18,9 +19,17 @@ const TabPanel: React.FC<TabPanelProps> = ({
   knowledgeBaseContent,
   detectiveContent,
   pathfinderContent,
-  scanningActive = false
+  scanningActive = false,
+  onTabChange
 }) => {
   const [activeTab, setActiveTab] = useState<'main' | 'knowledge' | 'detective' | 'pathfinder' | 'collab' | 'dashboard'>('main');
+
+  const handleTabChange = (tab: 'main' | 'knowledge' | 'detective' | 'pathfinder' | 'collab' | 'dashboard') => {
+    setActiveTab(tab);
+    if (onTabChange) {
+      onTabChange(tab);
+    }
+  };
 
   return (
     <div className="relative min-h-screen bg-[#6b5d4f]/20 backdrop-blur-sm border-b border-white/10 overflow-hidden shadow-sm flex flex-col">
@@ -45,7 +54,7 @@ const TabPanel: React.FC<TabPanelProps> = ({
           {/* Tab Buttons */}
           <div className="flex items-center gap-2">
           <button
-            onClick={() => setActiveTab('main')}
+            onClick={() => handleTabChange('main')}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-transparent text-white/60 hover:text-white transition-all duration-300"
           >
             <Activity className="w-4 h-4" />
@@ -53,7 +62,7 @@ const TabPanel: React.FC<TabPanelProps> = ({
           </button>
 
           <button
-            onClick={() => setActiveTab('knowledge')}
+            onClick={() => handleTabChange('knowledge')}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-transparent text-white/60 hover:text-white transition-all duration-300"
           >
             <BookOpen className="w-4 h-4" />
@@ -61,7 +70,7 @@ const TabPanel: React.FC<TabPanelProps> = ({
           </button>
 
           <button
-            onClick={() => setActiveTab('detective')}
+            onClick={() => handleTabChange('detective')}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-transparent text-white/60 hover:text-white transition-all duration-300"
           >
             <Search className="w-4 h-4" />
@@ -69,7 +78,7 @@ const TabPanel: React.FC<TabPanelProps> = ({
           </button>
 
           <button
-            onClick={() => setActiveTab('pathfinder')}
+            onClick={() => handleTabChange('pathfinder')}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-transparent text-white/60 hover:text-white transition-all duration-300"
           >
             <Navigation className="w-4 h-4" />
@@ -77,7 +86,7 @@ const TabPanel: React.FC<TabPanelProps> = ({
           </button>
 
           <button
-            onClick={() => setActiveTab('collab')}
+            onClick={() => handleTabChange('collab')}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-transparent text-white/60 hover:text-white transition-all duration-300"
           >
             <Users className="w-4 h-4" />
@@ -85,7 +94,7 @@ const TabPanel: React.FC<TabPanelProps> = ({
           </button>
 
           <button
-            onClick={() => setActiveTab('dashboard')}
+            onClick={() => handleTabChange('dashboard')}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-transparent text-white/60 hover:text-white transition-all duration-300"
           >
             <LayoutDashboard className="w-4 h-4" />
@@ -107,7 +116,7 @@ const TabPanel: React.FC<TabPanelProps> = ({
             </div>
           )
         ) : activeTab === 'detective' ? (
-          detectiveContent ? <div className="container mx-auto px-8 py-8 min-h-full">{detectiveContent}</div> : (
+          detectiveContent ? <div className="container mx-auto px-8 py-8 min-h-full">{React.isValidElement(detectiveContent) ? React.cloneElement(detectiveContent, { onNavigateToPathfinder: () => handleTabChange('pathfinder') } as any) : detectiveContent}</div> : (
             <div className="container mx-auto px-8 py-8 min-h-full">
               <div className="flex items-center gap-3 mb-4">
                 <Search className="w-6 h-6 text-white" />
