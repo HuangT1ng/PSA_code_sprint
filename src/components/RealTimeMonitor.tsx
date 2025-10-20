@@ -296,10 +296,10 @@ const EventTimeline: React.FC<EventTimelineProps> = ({ showServiceMonitors, onTo
               </div>
               <button
                 onClick={onToggleServiceMonitors}
-                className="p-2 text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition-all duration-200"
+                className="px-3 py-1.5 text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition-all duration-200 text-sm font-medium"
                 title={showServiceMonitors ? "Hide Service Monitors" : "Show Service Monitors"}
               >
-                {showServiceMonitors ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+                {showServiceMonitors ? "Collapse" : "Expand"}
               </button>
             </div>
           </div>

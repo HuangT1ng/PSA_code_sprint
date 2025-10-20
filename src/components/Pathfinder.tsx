@@ -246,11 +246,7 @@ const Pathfinder: React.FC = () => {
       setIsActive(false);
     }, 26000);
 
-    // Restart cycle after 15 seconds
-    setTimeout(() => {
-      const nextIndex = (issueIndex + 1) % novelIssues.length;
-      startSolving(nextIndex);
-    }, 41000);
+    // Analysis complete - no automatic restart
   }, [addThought]);
 
   // Auto-start
@@ -291,7 +287,7 @@ const Pathfinder: React.FC = () => {
             )}
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-white">Pathfinder++</h2>
+            <h2 className="text-2xl font-bold text-white">Pufferfish</h2>
             <p className="text-sm text-white/60">AI Problem Solver for Novel Issues</p>
           </div>
         </div>
@@ -537,10 +533,6 @@ const Pathfinder: React.FC = () => {
                   <p className="text-sm text-white/80 mt-1">Missing mandatory LOC segment in EDI message REF-IFT-0007, causing validator rejection with no auto-retry mechanism enabled</p>
                 </div>
                 
-                <div>
-                  <span className="text-xs text-white/60">Solution:</span>
-                  <p className="text-sm text-white/80 mt-1">{successfulFix?.action}</p>
-                </div>
                 
                 <div className="flex items-center gap-4 pt-2 border-t border-white/10">
                   <div className="flex items-center gap-2">
@@ -557,6 +549,20 @@ const Pathfinder: React.FC = () => {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Status Message */}
+      {currentPhase === 'complete' && (
+        <div className="bg-[#6b5d4f]/20 backdrop-blur-sm border border-white/10 rounded-xl p-6">
+          <div className="flex items-center justify-center">
+            <div className="flex items-center gap-3 px-6 py-3 bg-emerald-500/20 border border-emerald-500/40 rounded-lg">
+              <CheckCircle className="w-5 h-5 text-emerald-400" />
+              <span className="text-sm font-medium text-white">
+                Pushed to Agent Collaboration
+              </span>
             </div>
           </div>
         </div>

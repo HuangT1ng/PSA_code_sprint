@@ -228,14 +228,11 @@ const Detective: React.FC<DetectiveProps> = ({ onNavigateToPathfinder }) => {
           status: 'found'
         }]);
         
-        // Show knowledge graph when accessing knowledge base (show for 3 activities = 3 seconds)
+        // Show knowledge graph when accessing knowledge base and keep it visible
         if (activityIndex === 2) {
-          // Start showing at "Accessing knowledge base..."
+          // Start showing at "Accessing knowledge base..." and keep it visible
           setShowKnowledgeGraph(true);
         } else if (activityIndex === 5) {
-          // Hide after 3 seconds (activities 2, 3, 4)
-          setShowKnowledgeGraph(false);
-          
           // Calculate and show match score after knowledge graph
           const scores = [78, 34, 61]; // Different scores for each incident: Container (78%), EDI (34%), Vessel (61%)
           const score = scores[issueIndex % scores.length];
@@ -250,9 +247,6 @@ const Detective: React.FC<DetectiveProps> = ({ onNavigateToPathfinder }) => {
             setCurrentActivity('');
             return;
           }
-        } else if (activityIndex > 5) {
-          // Hide knowledge graph for later activities
-          setShowKnowledgeGraph(false);
         }
         
         activityIndex++;
@@ -299,11 +293,7 @@ const Detective: React.FC<DetectiveProps> = ({ onNavigateToPathfinder }) => {
             progressIntervalRef.current = null;
           }
           
-          // Schedule next issue after 15 seconds (gives time to review results)
-          cycleTimeoutRef.current = setTimeout(() => {
-            const nextIndex = (issueIndex + 1) % sampleIssues.length;
-            startAnalysis(nextIndex);
-          }, 15000);
+          // Analysis complete - manual next task button available
         }
         
         return next;
@@ -336,25 +326,71 @@ const Detective: React.FC<DetectiveProps> = ({ onNavigateToPathfinder }) => {
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Brain className="w-8 h-8 text-white" />
-            {isAnalyzing && (
-              <div className="absolute -top-1 -right-1">
-                <Sparkles className="w-4 h-4 text-yellow-400 animate-pulse" />
-              </div>
-            )}
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Brain className="w-8 h-8 text-white" />
+              {isAnalyzing && (
+                <div className="absolute -top-1 -right-1">
+                  <Sparkles className="w-4 h-4 text-yellow-400 animate-pulse" />
+                </div>
+              )}
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white">Dolphin</h2>
+              <p className="text-sm text-white/60">AI-Powered Root Cause Finder</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-2xl font-bold text-white">Detective</h2>
-            <p className="text-sm text-white/60">AI-Powered Root Cause Finder</p>
+          
+          {/* Task Status Boxes */}
+          <div className="flex items-center gap-4">
+            {/* Current Task Box */}
+            <div className="bg-[#6b5d4f]/20 backdrop-blur-sm border border-white/10 rounded-lg p-3 min-w-[200px]">
+              <div className="flex items-center gap-2 mb-1">
+                <Activity className="w-4 h-4 text-cyan-400" />
+                <span className="text-xs font-semibold text-white/80 uppercase tracking-wide">Current Task</span>
+              </div>
+              <div className="text-sm text-white font-medium">
+                {isAnalyzing || currentPhase === 'complete' ? (
+                  sampleIssues[currentIssueIndex].name.split(' - ')[0]
+                ) : (
+                  'Ready to analyze'
+                )}
+              </div>
+            </div>
+
+            {/* Next Task Box */}
+            <div className="bg-[#6b5d4f]/20 backdrop-blur-sm border border-white/10 rounded-lg p-3 min-w-[200px]">
+              <div className="flex items-center gap-2 mb-1">
+                <Clock className="w-4 h-4 text-amber-400" />
+                <span className="text-xs font-semibold text-white/80 uppercase tracking-wide">Next Task</span>
+              </div>
+              <div className="text-sm text-white font-medium">
+                {sampleIssues[(currentIssueIndex + 1) % sampleIssues.length].name.split(' - ')[0]}
+              </div>
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-white/20 border border-white/30 rounded-lg">
-          <Zap className="w-4 h-4 text-cyan-400" />
-          <span className="text-sm font-medium text-white">
-            {isAnalyzing ? 'ANALYZING...' : currentPhase === 'complete' ? 'COMPLETE' : 'READY'}
-          </span>
+        
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 px-4 py-2 bg-white/20 border border-white/30 rounded-lg">
+            <Zap className="w-4 h-4 text-cyan-400" />
+            <span className="text-sm font-medium text-white">
+              {isAnalyzing ? 'ANALYZING...' : currentPhase === 'complete' ? 'COMPLETE' : 'READY'}
+            </span>
+          </div>
+          {currentPhase === 'complete' && (
+            <button
+              onClick={() => {
+                const nextIndex = (currentIssueIndex + 1) % sampleIssues.length;
+                startAnalysis(nextIndex);
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-500/20 border border-emerald-500/40 rounded-lg text-emerald-400 hover:bg-emerald-500/30 transition-colors"
+            >
+              <Activity className="w-4 h-4" />
+              <span className="text-sm font-medium">Next Task</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -379,7 +415,7 @@ const Detective: React.FC<DetectiveProps> = ({ onNavigateToPathfinder }) => {
       </div>
 
       {/* Analysis Progress */}
-      {(isAnalyzing || currentPhase === 'complete') && (
+      {currentPhase !== 'idle' && (
         <div className="bg-[#6b5d4f]/20 backdrop-blur-sm border border-white/10 rounded-xl p-6 space-y-4">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-lg font-semibold text-white">Analysis Progress</h3>
@@ -410,7 +446,7 @@ const Detective: React.FC<DetectiveProps> = ({ onNavigateToPathfinder }) => {
           </div>
 
           {/* AI Search Activity Log */}
-          {isAnalyzing && searchActivities.length > 0 && (
+          {searchActivities.length > 0 && (
             <div className="mt-6">
               <div className="flex items-center gap-2 mb-3">
                 <Activity className="w-4 h-4 text-cyan-400 animate-pulse" />
@@ -640,6 +676,22 @@ const Detective: React.FC<DetectiveProps> = ({ onNavigateToPathfinder }) => {
             { source: 'learned-case-alr861600', target: 'res-dedup', label: 'enhances' }
           ]}
         />
+      )}
+
+      {/* Status Message */}
+      {currentPhase === 'complete' && (
+        <div className="bg-[#6b5d4f]/20 backdrop-blur-sm border border-white/10 rounded-xl p-6">
+          <div className="flex items-center justify-center">
+            <div className="flex items-center gap-3 px-6 py-3 bg-emerald-500/20 border border-emerald-500/40 rounded-lg">
+              <CheckCircle className="w-5 h-5 text-emerald-400" />
+              <span className="text-sm font-medium text-white">
+                {currentIssueIndex === 0 ? 'Pushed to Agent Collaboration Stream' :
+                 currentIssueIndex === 1 ? 'Pushing to Pufferfish for Analysis' :
+                 'Analysis Complete'}
+              </span>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

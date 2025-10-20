@@ -47,7 +47,7 @@ const TabPanel: React.FC<TabPanelProps> = ({
               </div>
             </div>
             <h1 className="text-2xl font-medium text-white tracking-tight">
-              Sentinel
+            Port Guardian X+
             </h1>
           </div>
           
@@ -58,7 +58,7 @@ const TabPanel: React.FC<TabPanelProps> = ({
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-transparent text-white/60 hover:text-white transition-all duration-300"
           >
             <Activity className="w-4 h-4" />
-            <span className="text-sm font-medium">Sentinel</span>
+            <span className="text-sm font-medium">Clownfish</span>
           </button>
 
           <button
@@ -74,7 +74,7 @@ const TabPanel: React.FC<TabPanelProps> = ({
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-transparent text-white/60 hover:text-white transition-all duration-300"
           >
             <Search className="w-4 h-4" />
-            <span className="text-sm font-medium">Detective</span>
+            <span className="text-sm font-medium">Dolphin</span>
           </button>
 
           <button
@@ -82,7 +82,7 @@ const TabPanel: React.FC<TabPanelProps> = ({
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-transparent text-white/60 hover:text-white transition-all duration-300"
           >
             <Navigation className="w-4 h-4" />
-            <span className="text-sm font-medium">PathFinder</span>
+            <span className="text-sm font-medium">Pufferfish</span>
           </button>
 
           <button
